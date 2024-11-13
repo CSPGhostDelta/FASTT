@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Register</title>
+    <meta property="og:title" content="FASTT" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="/static/styles/register.css">
+    <script src="/static/scripts/script.js"></script>
+    <link rel="stylesheet" href="/static/styles/animate.css">
+    <link rel="stylesheet" href="/static/styles/notification.css">
+    {% include 'fonts.html' %}
+    {% include 'notification.html' %}
+</head>
+<body>
+
+  <div class="fasttext">
+  <h1>Welcome to</h1> 
+    <div class="fastt" data-text="FASTT">FASTT</div>
+  <p>Fast and Automated Security Testing Tool</p>
+  </div>
+    <form action="{{ url_for('app.register') }}" method="post">
+        <h3>Create Account</h3>
+        <label for="username">Username</label>
+        <input type="text" placeholder="Username" id="username" name="username" required>
+        <label for="password">Password</label>
+        <input type="password" placeholder="Password" id="password" name="password" required>
+        <button>Create Account</button>
+    </form>
+</body>
+</html>

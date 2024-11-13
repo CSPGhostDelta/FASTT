@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Summary</title>
+    <link rel="stylesheet" href="/static/styles/summary.css">
+    <link rel="stylesheet" href="/static/styles/notification.css">
+    <link rel="stylesheet" href="/static/styles/body.css">
+    {% include 'fonts.html' %}
+    {% include 'header.html' %}
+</head>
+<body>
+    <div class="container">
+        <h2>Scan Summary</h2>
+
+        <div class="summary-section">
+            <div class="summary-item">
+                <span class="icon">🎯</span>
+                <p>Total Targets</p>
+                <h3>3</h3>
+            </div>
+            <div class="summary-item">
+                <span class="icon">🔍</span>
+                <p>Total Scans</p>
+                <h3>3</h3>
+            </div>
+            <div class="summary-item">
+                <span class="icon">🐞</span>
+                <p>Total Vulnerabilities</p>
+                <h3>8</h3>
+            </div>
+            <div class="summary-item">
+                <span class="icon">⏲️</span>
+                <p>Total Scan Time Elapsed</p>
+                <h3>64 hours, 30 Minutes</h3>
+            </div>
+        </div>
+
+        <div class="vulnerabilities-section">
+            <div class="vulnerabilities-severity">
+                <h3>Total Vulnerabilities by Severity</h3><hr>
+                <div class="severity">
+                    <div class="severity-item critical">0<br>Critical</div>
+                    <div class="severity-item high">0<br>High</div>
+                    <div class="severity-item medium">0<br>Medium</div>
+                    <div class="severity-item low">0<br>Low</div>
+                    <div class="severity-item informational">0<br>Informational</div>
+                </div>
+            </div>
+
+            <div class="vulnerabilities-found">
+                <h3>Most Vulnerabilities Found</h3>
+                <hr>
+                <table>
+                    <tr>
+                        <th>No.</th>
+                        <th>Name</th>
+                        <th>Total</th>
+                    </tr>
+                    <tr>
+                        <td>1.</td>
+                        <td>SQL Injection</td>
+                        <td>4</td>
+                    </tr>
+                    <tr>
+                        <td>2.</td>
+                        <td>Cross-Site Scripting (XSS)</td>
+                        <td>2</td>
+                    </tr>
+                    <tr>
+                        <td>3.</td>
+                        <td>Cross-Site Request Forgery</td>
+                        <td>3</td>
+                    </tr>
+                    <tr>
+                        <td>4.</td>
+                        <td>File Upload Vulnerability</td>
+                        <td>2</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

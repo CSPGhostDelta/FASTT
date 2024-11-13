@@ -1,0 +1,5 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="flash-messages" data-category="{{ messages[0][0] }}" data-message="{{ messages[0][1] }}" style="display: none;"></div>
+{% endif %}
+{% endwith %}

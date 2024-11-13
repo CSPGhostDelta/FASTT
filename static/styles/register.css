@@ -1,0 +1,251 @@
+*:before,
+*:after{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+body {
+  background-color: #111113;
+  overflow: hidden;
+}
+
+.fasttext {
+  display: flex;
+  justify-content: center;
+  align-items: center; 
+  flex-direction: column; 
+  height: 100vh;
+}
+
+h1 {
+  top: 8%;
+  left: 34.5%;
+  color: rgb(255, 255, 255);
+  font-size: 2.5vw;
+  font-family: "Work Sans";
+  font-weight: 250;
+  position: absolute;
+  width: 80%;
+  max-width: 600px;
+  min-width: 300px;
+  margin: 0 auto; 
+}
+
+.fastt {
+  color: rgb(255, 255, 255);
+  top: 7%;
+  left: 49%;
+  width: 80%;
+  max-width: 600px;
+  min-width: 300px;
+  margin: 0 auto; 
+  font-size: 3.5vw;
+  font-family: "Goldman";
+  position: absolute;
+  letter-spacing: 0.5em;
+  font-weight: 200;
+  text-shadow: 0 0 2rem #a5a5a5de;
+  animation: flicker 1.2s linear infinite alternate, neon 1s ease-in-out infinite alternate;
+}
+
+.fastt::before, .fastt::after {
+  content: attr(data-text); 
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: none;
+  overflow: hidden;
+}
+
+.fastt::before {
+  left: -2px;
+  text-shadow: -2px 0 rgb(0, 129, 151);
+  clip: rect(0, 100%, 100%, 0);
+  animation: glitch-before 6s infinite linear alternate-reverse;
+}
+
+.fastt::after {
+  left: 2px;
+  text-shadow: -2px 0 rgb(0, 70, 110);
+  clip: rect(0, 100%, 100%, 0);
+  animation: glitch-after 3s infinite linear alternate-reverse;
+}
+
+p {
+  top: 14%;
+  left: 32%;
+  color: white;
+  overflow: hidden;
+  border-right: 3px solid rgb(255, 255, 255);
+  white-space: nowrap;
+  position: absolute;
+  margin: 0 auto;
+  font-size: 2.3vw;
+  font-family: "Darker Grotesque";
+  font-weight: 500;
+  letter-spacing: 1px;
+  animation: 
+  typing-deleting 6s steps(50, end) infinite,
+  lights 5s linear infinite,
+  blink-caret 0.75s step-end infinite; 
+}
+
+form{
+    height: 520px;
+    width: 380px;
+    background-color: rgba(255,255,255,0.13);
+    position: absolute;
+    transform: translate(-50%,-50%);
+    top: 60%;
+    left: 50%;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 40px rgba(8,7,16,0.6);
+    padding: 0px 50px;
+}
+form *{
+    font-family: 'Poppins',sans-serif;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    outline: none;
+    border: none;
+}
+form h3{
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 42px;
+    text-align: center;
+}
+
+label{
+    display: block;
+    margin-top: 30px;
+    font-size: 16px;
+    font-weight: 500;
+}
+input{
+    display: block;
+    height: 50px;
+    width: 360px;
+    background-color: rgba(255,255,255,0.07);
+    border-radius: 3px;
+    padding: 0 10px;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 300;
+}
+::placeholder{
+    color: #e5e5e5;
+}
+
+.backtologin {
+  color: #e2e2e2;
+  position: absolute;
+  bottom: 12%;
+  left: 38%;
+  font-family: "Inter";
+  font-size: 18px;
+  font-weight: 550;
+  text-decoration: none;
+}
+
+button{
+    margin-top: 50px;
+    width: 100%;
+    background-color: #ffffff;
+    color: #080710;
+    padding: 15px 0;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+  color: rgb(255, 255, 255);
+  background-color: #217e9b;
+}
+
+@keyframes typing-deleting {
+  0% { width: 0; }
+  40% { width: 38%; }
+  70% { width: 38%; }
+  100% { width: 0; }
+}
+
+
+@media only screen and (max-width: 768px) {
+  button{
+    margin-top: 30px;
+    width: 100%;
+}
+  h1 {
+    font-size: 3.2vw;
+    top: 15.5%;
+    left: 28%;
+  }
+  .fastt {
+    font-size: 3.2vw;
+    top: 15.5%;
+    left: 47%;
+  }
+
+  p {
+    font-size: 3.1vw;
+    top: 20%;
+    left: 24%;
+  }
+  form {
+    height: 450px;
+    width: 320px;
+  }
+  input {
+    width: 300px;
+  }
+
+  .backtologin {
+    bottom: 5%;
+    left: 35%;
+  }
+
+  @keyframes typing-deleting {
+    0% { width: 0; }
+    40% { width: 53%; }
+    70% { width: 53%; }
+    100% { width: 0; }
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  h1 {
+    font-size: 4vw;
+    top: 20%;
+    left: 25%;
+  }
+  .fastt {
+    font-size: 4vw;
+    top: 20%;
+    left: 42%;
+  }
+  p {
+    font-size: 3.5vw;
+    top: 28%;
+    left: 20%;
+  }
+  form {
+    height: 400px;
+    width: 280px;
+    padding: 0px 30px;
+  }
+  input {
+    width: 260px;
+  }
+  .backtologin {
+    bottom: 3%;
+    left: 32%;
+  }
+}

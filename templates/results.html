@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Results</title>
+    <link rel="stylesheet" href="/static/styles/notification.css">
+    <link rel="stylesheet" href="/static/styles/body.css">
+    <link rel="stylesheet" href="/static/styles/results.css">
+    {% include 'fonts.html' %}
+    {% include 'header.html' %}
+    {% include 'notification.html' %}
+</head>
+<body>
+    <div class="container">
+        <h2 class="title">Scan Results</h2>
+
+        <div class="scan-details">
+            <div class="detail">
+                <strong>Scan Name</strong>: Scan 1
+            </div>
+            <div class="detail">
+                <strong>Domain</strong>: esaunggul.ac.id
+            </div>
+            <div class="detail">
+                <strong>Time Elapsed</strong>: 2 hours 3 minutes
+            </div>
+            <div class="detail">
+                <strong>Total Vulnerabilities</strong>: 8
+            </div>
+        </div>
+
+        <div class="vulnerability-severity">
+            <h3>Discovered Vulnerability by Severity</h3>
+            <div class="severity-levels">
+                <div class="severity critical">Critical<br>0</div>
+                <div class="severity high">High<br>0</div>
+                <div class="severity medium">Medium<br>0</div>
+                <div class="severity low">Low<br>1</div>
+                <div class="severity informational">Informational<br>1</div>
+            </div>
+            <button class="download-btn">Download Report</button>
+        </div>
+
+        <div class="vulnerabilities-table">
+            <h3>Vulnerabilities Found</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Vulnerability Name</th>
+                        <th>Severity</th>
+                        <th>CVSS Score</th>
+                        <th>Affected URL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Cross-Site Scripting</td>
+                        <td class="severity low">Low</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Blind-Based SQL Injection</td>
+                        <td class="severity high">High</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Local File Inclusion</td>
+                        <td class="severity critical">Critical</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Broken Access Control</td>
+                        <td class="severity critical">Critical</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

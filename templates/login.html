@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>FASTT - Login</title>
+    <meta property="og:title" content="FASTT" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <script src="/static/scripts/script.js"></script>
+    <link rel="stylesheet" href="/static/styles/login.css"/>
+    <link rel="stylesheet" href="/static/styles/animate.css"/>
+    <link rel="stylesheet" href="/static/styles/notification.css">
+    {% include 'fonts.html' %}
+    {% include 'notification.html' %}
+</head>
+<body>
+    <div>
+        <div class="welcome">
+            <h1>Welcome to FASTT!</h1>
+        </div>
+        <div class="login-page-container1">
+            <form id="formlogin" class="login-page-container2" action="{{ url_for('app.login') }}" method="POST">
+                <p class="login-page-text5">Please log in with your account!</p>
+                
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    oninput="enableButton()"
+                    required
+                    placeholder="Username"
+                    class="login-page-textinput1 formlogin"
+                />
+                
+                <input
+                type="password"
+                id="password"
+                name="password"
+                oninput="enableButton()"
+                required
+                placeholder="Password"
+                class="login-page-textinput2 formlogin"
+                autocomplete="off"
+            />
+            <svg
+                viewBox="0 0 1024 1024"
+                class="login-page-showpass"
+                onclick="showpassword()"
+                id="password-toggle"
+            >
+                <path
+                    d="M512 192q158 0 286 88t184 232q-56 144-184 232t-286 88-286-88-184-232q56-144 184-232t286-88zM512 384q52 0 90 38t38 90-38 90-90 38-90-38-38-90 38-90 90-38zM512 726q88 0 151-63t63-151-63-151-151-63-151 63-63 151 63 151 151 63z"
+                ></path>
+            </svg>
+            
+            <div class="remember-create-container">
+                <div class="remember-me-container">
+                    <input type="checkbox" name="remember" id="remember" class="login-page-rememberme" />
+                    <span class="login-page-text4">Remember Me</span>
+                </div>
+                <a href="{{ url_for('app.createnewaccount') }}" class="createaccount">Create Another Account</a>
+            </div>                
+                <button
+                    id="loginbtn"
+                    type="submit"
+                    disabled
+                    class="login-page-button"
+                >
+                    <span class="login-page-text1">
+                        <span>Login</span>
+                    </span>
+                </button>
+            </form>            
+        </div> 
+    </div>
+    <div class="logo">
+        <img alt="image" src="/static/images/logo.png" class="login-page-image"/>
+        <div class="logo-text-container">
+            <p class="login-page-text7" data-text="FASTT">FASTT</p>
+            <p class="login-page-text8">Fast and Automated Security Testing Tool</p>
+        </div>
+    </div>
+</body>
+</html>

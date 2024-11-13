@@ -1,0 +1,39 @@
+@font-face {
+    font-family: 'Darker Grotesque';
+    src: url('/static/fonts/Darker_Grotesque/DarkerGrotesque-VariableFont_wght.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Goldman';
+    src: url('/static/fonts/Goldman/Goldman-Regular.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Inter';
+    src: url('/static/fonts/Inter/Inter-VariableFont_opsz\,wght.ttf') format('truetype');
+  }
+
+  @font-face {
+    font-family: 'Open Sans';
+    src: url('/static/fonts/Open_Sans/OpenSans-VariableFont_wdth\,wght.ttf') format('truetype');
+  }
+
+  @font-face {
+    font-family: 'Poppins';
+    src: url('/static/fonts/Poppins/Poppins-Regular.ttf') format('truetype');
+  }
+
+  @font-face {
+    font-family: 'Rubik';
+    src: url('/static/fonts/Rubik/Rubik-VariableFont_wght.ttf') format('truetype');
+  }
+  
+  @font-face {
+    font-family: 'Ubuntu';
+    src: url('/static/fonts/Ubuntu/Ubuntu-Regular.ttf') format('truetype');
+  }
+
+  @font-face {
+    font-family: 'Work Sans';
+    src: url('/static/fonts/Work_Sans/WorkSans-VariableFont_wght.ttf') format('truetype');
+  }
