@@ -1,0 +1,200 @@
+.container {
+    width: 98%;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin: 0 auto;
+    position: relative;
+    height: auto;
+    min-height: 70vh;
+}
+
+h2 {
+    text-align: left;
+    margin-bottom: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+.summary-section {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+}
+
+.summary-item {
+    text-align: center;
+    flex: 1 1 200px;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.summary-item h3 {
+    color: #ff6200;
+    font-size: 1.5em;
+    margin-top: 5px;
+}
+
+.icon {
+    font-size: 1.5em;
+    color: #555;
+}
+
+hr {
+    height: 3px;
+}
+
+.vulnerabilities-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.vulnerabilities-severity, .vulnerabilities-found {
+    width: 50%;
+    min-width: 300px;
+}
+
+.vulnerabilities-severity hr {
+    width: 300px;
+}
+
+.vulnerabilities-found hr {
+    width: 250px;
+    margin-left: 100px;
+}
+
+.vulnerabilities-severity h3, .vulnerabilities-found h3 {
+    font-size: 1.2em;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.vulnerabilities-found h3 {
+    margin-left: 100px;
+}
+
+.severity {
+    display: flex;
+    justify-content: space-around; 
+    flex-wrap: nowrap;
+    width: 100%; 
+    margin-top: 20px;
+}
+
+.severity-item {
+    text-align: center;
+    width: 130px; 
+    height: 120px; 
+    border-radius: 50%;
+    font-size: 1em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0; 
+}
+
+
+.critical { color: rgb(255, 33, 33); }
+.high { color: rgb(216, 166, 0); }
+.medium { color: rgb(226, 226, 0); }
+.low { color: rgb(21, 221, 21); }
+.informational { color: rgb(15, 179, 179);}
+
+.critical, .high, .medium, .low, .informational {
+    border: 5px solid;
+}
+
+table {
+    width: 80%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    table-layout: auto;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-left: 100px;
+}
+
+table th, table td {
+    padding: 10px;
+    text-align: left;
+}
+
+table th {
+    background-color: #23c8ce69;
+    font-weight: 500;
+}
+
+@media screen and (max-width: 1200px) {
+    .vulnerabilities-severity, .vulnerabilities-found {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    table, .vulnerabilities-found h3 {
+        margin-bottom: 10px;
+        margin-left: 5px;
+        margin-top: 20px;
+    }
+
+    .vulnerabilities-found hr {
+        margin-left: 5px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    h2 {
+        font-size: 1.3em;
+    }
+
+    .summary-item {
+        flex: 1 1 45%;
+    }
+
+    .severity-item {
+        width: 110px;
+        height: 100px;
+        font-size: 0.9em;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+
+    h2 {
+        font-size: 1.2em;
+    }
+
+    .summary-item {
+        flex: 1 1 100%;
+    }
+
+    .summary-item h3 {
+        font-size: 1.3em;
+    }
+
+    .icon {
+        font-size: 1.3em;
+    }
+
+    .severity-item {
+        width: 90px;
+        height: 80px;
+        font-size: 0.8em;
+    }
+
+    table th, table td {
+        padding: 8px;
+        font-size: 0.9em;
+    }
+}

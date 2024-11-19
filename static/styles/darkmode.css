@@ -1,0 +1,206 @@
+:root {
+    --background-color: #F8F8F8;
+    --text-color: rgb(29, 29, 29);
+    --header-bg-color: #193e52;
+    --nav-bg-color: #ffffff8a;
+    --card-color: #ffffff;
+    --card-color-2: #d8d8d888;
+    --link-hover-bg-color: #464646;
+    --link-hover-color: #ffffff;
+    --fill-color: #2c2c2c;
+    --fill-hover: #ffffff;
+    --table-color: rgba(233, 233, 233, 0.795);
+    --table-th: #61b4c9;
+    --table-border: #61b4c9;
+    --top-target-border: #ff7777;
+    --top-target-th: #ff7777;
+    --profile: #f8f8f8;
+    --button: #073a55;
+    --button-hover: #031824;
+    --save-button-hover: #006ec9;
+    --status-ready: rgb(129, 129, 0);
+}
+
+[data-theme="dark"] {
+    --background-color: #1b1b1b;
+    --text-color: #F8F8F8;
+    --header-bg-color: #0d4c50be;
+    --nav-bg-color: #2c2c2c;
+    --card-color: #222222;
+    --card-color-2: #2b2b2b;
+    --link-hover-bg-color: #f5f5f5;
+    --link-hover-color: #000000;
+    --fill-color: #f5f5f5;
+    --fill-hover: #0f0f0f;
+    --table-color: #202020;
+    --table-th: #308b8b;
+    --table-border: #308b8b;
+    --top-target-border: #b14343;
+    --top-target-th: #b14343;
+    --profile: #242424;
+    --button: #920b0b;
+    --button-hover: #5f0d0d;
+    --save-button-hover: #05243d;
+    --status-ready: rgb(238, 238, 13);
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+header {
+    background-color: var(--header-bg-color);
+}
+
+.overview-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.card {
+    background-color: var(--card-color);
+}
+
+.nav-bar nav ul {
+    background-color: var(--nav-bg-color);
+}
+
+.nav-bar nav ul li a {
+    color: var(--text-color);
+}
+
+.nav-bar nav ul li path {
+    fill: var(--fill-color);
+}
+
+.profile-header path {
+    fill: var(--fill-color);
+}
+
+.profile-container path {
+    fill: var(--fill-color);
+}
+
+.profile-image path {
+    fill: var(--fill-color);
+}
+
+.nav-bar ul li a:hover path {
+    fill: var(--fill-hover);
+}
+
+.nav-bar nav ul li a:hover {
+    background-color: var(--link-hover-bg-color);
+    color: var(--link-hover-color);
+}
+
+.recent-scans table {
+    background-color: var(--table-color);
+}
+
+.recent-scans th {
+    background-color: var(--table-th);
+}
+
+.recent-scans th, .recent-scans td {
+    border-bottom: 1px solid var(--table-border);
+}
+
+.top-target table {
+    background-color: var(--table-color);
+}
+
+.top-target th {
+    background-color: var(--top-target-th);
+}
+
+.top-target th, .top-target td {
+    border-bottom: 1px solid var(--top-target-border);
+}
+
+.profile-options {
+    background-color: var(--profile);
+}
+
+.profile-links a {
+    color: var(--text-color);
+}
+
+.profile-header span {
+    color: var(--text-color);
+}
+
+.profile-links a:hover {
+    color: var(--link-hover-color);
+    background-color: var(--link-hover-bg-color);
+}
+
+.profile-container {
+    background-color: var(--card-color);
+}
+
+.profile-container h2 {
+    color: var(--text-color);
+}
+
+.profile-image span {
+    color: var(--text-color);
+}
+
+.profile-form h2 {
+    border-bottom: solid var(--text-color);
+}
+
+.profile-form input[type="email"],
+.profile-form input[type="tel"],
+.profile-form input[type="text"] {
+    color: var(--text-color);
+}
+
+.cancel-btn {
+    background-color: var(--button);
+}
+
+.cancel-btn:hover {
+    background-color: var(--button-hover);
+}
+
+.save-btn:hover {
+    background-color: var(--save-button-hover);
+}
+
+.container {
+    background-color: var(--card-color);
+}
+
+.container tr,th {
+    color: var(--fill-color);
+}
+
+.container h1, h2 {
+    color: var(--text-color);
+}
+
+.form-group label {
+    color: var(--text-color);
+}
+
+.form-group input, textarea {
+    background-color: var(--card-color);
+    color: var(--text-color);
+}
+
+.status-ready {
+    color: var(--status-ready);
+}
+
+.summary-item, .vulnerabilities-found table {
+    background-color: var(--card-color-2);
+}
+
+hr {
+    background-color: var(--text-color);
+}

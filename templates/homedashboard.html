@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FASTT Dashboard</title>
+    <link rel="stylesheet" href="/static/styles/dashboard.css">
+    <link rel="stylesheet" href="/static/styles/notification.css">
+    <link rel="stylesheet" href="/static/styles/body.css">
+    <script src="/static/scripts/chart.js"></script>
+    {% include 'fonts.html' %}
+    {% include 'notification.html' %}
+    {% include 'header.html' %}
+</head>
+<body>
+        <section class="overview">
+            <h2>Dashboard</h2>
+            <div class="overview-cards">
+                <div class="card">
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" xml:space="preserve" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <style type="text/css"> .blueprint_een{fill:#cd2323;} </style> <path class="blueprint_een" d="M31.01,15h-1.06C29.458,8.068,23.932,2.542,17,2.05V0.99C17,0.443,16.557,0,16.01,0h-0.02 C15.443,0,15,0.443,15,0.99v1.06C8.068,2.542,2.542,8.068,2.05,15H0.99C0.443,15,0,15.443,0,15.99v0.02C0,16.557,0.443,17,0.99,17 h1.06C2.542,23.932,8.068,29.458,15,29.95v1.06c0,0.547,0.443,0.99,0.99,0.99h0.02c0.547,0,0.99-0.443,0.99-0.99v-1.06 c6.932-0.491,12.458-6.018,12.95-12.95h1.06c0.547,0,0.99-0.443,0.99-0.99v-0.02C32,15.443,31.557,15,31.01,15z M27.949,15h-1 C26.473,9.724,22.276,5.527,17,5.05v-1C22.819,4.534,27.466,9.181,27.949,15z M16,26c-5.514,0-10-4.486-10-10S10.486,6,16,6 s10,4.486,10,10S21.514,26,16,26z M15,4.051v1C9.724,5.527,5.527,9.724,5.05,15h-1C4.534,9.181,9.181,4.534,15,4.051z M4.051,17h1 c0.476,5.276,4.674,9.473,9.95,9.95v1C9.181,27.466,4.534,22.819,4.051,17z M17,27.949v-1c5.276-0.476,9.473-4.674,9.95-9.95h1 C27.466,22.819,22.819,27.466,17,27.949z M20,15.99v0.02c0,0.547-0.443,0.99-0.99,0.99H17v2.01c0,0.547-0.443,0.99-0.99,0.99h-0.02 C15.443,20,15,19.557,15,19.01V17h-2.01C12.443,17,12,16.557,12,16.01v-0.02c0-0.547,0.443-0.99,0.99-0.99H15v-2.01 c0-0.547,0.443-0.99,0.99-0.99h0.02c0.547,0,0.99,0.443,0.99,0.99V15h2.01C19.557,15,20,15.443,20,15.99z"></path> </g></svg>
+                    <div class="details">
+                        <span>Total Targets</span>
+                        <h3>3</h3>
+                    </div>
+
+                    <div class="top-target">
+                        <h3>Top 3 Targets with Most Vulnerabilities</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Target Name</th>
+                                    <th>Total Vulns</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1.</td>
+                                    <td>Scan 1</td>
+                                    <td>10</td>
+                                </tr>
+                                <tr>
+                                    <td>2.</td>
+                                    <td>Scan 2</td>
+                                    <td>2</td>
+                                </tr>
+                                <tr>
+                                    <td>3.</td>
+                                    <td>Scan 3</td>
+                                    <td>1</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6.5 4C5.11929 4 4 5.11929 4 6.5V7C4 7.55228 3.55228 8 3 8C2.44772 8 2 7.55228 2 7V6.5C2 4.01472 4.01472 2 6.5 2H7C7.55228 2 8 2.44772 8 3C8 3.55228 7.55228 4 7 4H6.5Z" fill="#0090a3"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M10.9598 6C10.294 5.99998 9.73444 5.99997 9.27657 6.03738C8.79785 6.07649 8.34289 6.16143 7.91103 6.38148C7.25247 6.71703 6.71703 7.25247 6.38148 7.91103C6.16143 8.34289 6.07649 8.79785 6.03738 9.27657C6.01958 9.49452 6.01025 9.73549 6.00536 10H4C3.44772 10 3 10.4477 3 11C3 11.5523 3.44772 12 4 12H20C20.5523 12 21 11.5523 21 11C21 10.4477 20.5523 10 20 10H17.9946C17.9898 9.73549 17.9804 9.49451 17.9626 9.27657C17.9235 8.79785 17.8386 8.34289 17.6185 7.91103C17.283 7.25247 16.7475 6.71703 16.089 6.38148C15.6571 6.16143 15.2021 6.07649 14.7234 6.03738C14.2656 5.99997 13.706 5.99998 13.0402 6H10.9598ZM15.9943 10C15.99 9.7843 15.9825 9.60112 15.9693 9.43944C15.9403 9.0844 15.889 8.92194 15.8365 8.81901C15.6927 8.53677 15.4632 8.3073 15.181 8.16349C15.0781 8.11105 14.9156 8.05975 14.5606 8.03074C14.1938 8.00078 13.7166 8 13 8H11C10.2834 8 9.80615 8.00078 9.43944 8.03074C9.0844 8.05975 8.92194 8.11105 8.81901 8.16349C8.53677 8.3073 8.3073 8.53677 8.16349 8.81901C8.11105 8.92194 8.05975 9.0844 8.03074 9.43944C8.01753 9.60112 8.00999 9.7843 8.00569 10H15.9943Z" fill="#0090a3"></path> <path d="M14.0757 18L10.9598 18C10.2941 18 9.7344 18 9.27657 17.9626C8.79785 17.9235 8.34289 17.8386 7.91103 17.6185C7.25247 17.283 6.71703 16.7475 6.38148 16.089C6.34482 16.017 6.32528 15.9835 6.29997 15.9401C6.28429 15.9132 6.26639 15.8825 6.24083 15.8365C6.17247 15.7135 6.09846 15.5585 6.05426 15.342C6.01816 15.1651 6.00895 14.9784 6.00455 14.795C6 14.6058 6 14.3522 6 14.0159V14C6 13.4477 6.44772 13 7 13C7.55229 13 8 13.4477 8 14C8 14.3558 8.00007 14.5848 8.00397 14.7469C8.0058 14.823 8.00837 14.872 8.01047 14.9021C8.04313 14.9585 8.10631 15.0688 8.16349 15.181C8.3073 15.4632 8.53677 15.6927 8.81901 15.8365C8.92194 15.889 9.0844 15.9403 9.43944 15.9693C9.80615 15.9992 10.2834 16 11 16H14C14.5027 16 14.6376 15.9969 14.7347 15.9815C15.3765 15.8799 15.8799 15.3765 15.9815 14.7347C15.9969 14.6376 16 14.5027 16 14C16 13.4477 16.4477 13 17 13C17.5523 13 18 13.4477 18 14L18 14.0757C18.0002 14.4657 18.0003 14.7734 17.9569 15.0475C17.7197 16.5451 16.5451 17.7197 15.0475 17.9569C14.7734 18.0003 14.4657 18.0002 14.0757 18Z" fill="#0090a3"></path> <path d="M22 17C22 16.4477 21.5523 16 21 16C20.4477 16 20 16.4477 20 17V17.5C20 18.8807 18.8807 20 17.5 20H17C16.4477 20 16 20.4477 16 21C16 21.5523 16.4477 22 17 22H17.5C19.9853 22 22 19.9853 22 17.5V17Z" fill="#0090a3"></path> <path d="M16 3C16 2.44772 16.4477 2 17 2H17.5C19.9853 2 22 4.01472 22 6.5V7C22 7.55228 21.5523 8 21 8C20.4477 8 20 7.55228 20 7V6.5C20 5.11929 18.8807 4 17.5 4H17C16.4477 4 16 3.55228 16 3Z" fill="#0090a3"></path> <path d="M4 17C4 16.4477 3.55228 16 3 16C2.44772 16 2 16.4477 2 17V17.5C2 19.9853 4.01472 22 6.5 22H7C7.55228 22 8 21.5523 8 21C8 20.4477 7.55228 20 7 20H6.5C5.11929 20 4 18.8807 4 17.5V17Z" fill="#0090a3"></path> </g></svg>
+                    <div class="details">
+                        <span>Total Scans</span>
+                        <h3>3</h3>
+                    </div>
+
+                    <div class="recent-scans">
+                        <h3>Recent Scans</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Name</th>
+                                    <th>Last Scan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#1</td>
+                                    <td>Scan 1</td>
+                                    <td>2 hours ago</td>
+                                </tr>
+                                <tr>
+                                    <td>#2</td>
+                                    <td>Scan 2</td>
+                                    <td>10 hours ago</td>
+                                </tr>
+                                <tr>
+                                    <td>#3</td>
+                                    <td>Scan 3</td>
+                                    <td>1 day ago</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card card-chart-table">
+                    <svg width="256px" height="256px" viewBox="0 0 24 24" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><defs><style>.cls-1{fill:none;stroke:#f59b00;stroke-miterlimit:10;stroke-width:1.152;}</style></defs><circle class="cls-1" cx="12" cy="12" r="9.58"></circle><line class="cls-1" x1="12" y1="0.5" x2="12" y2="5.29"></line><line class="cls-1" x1="12" y1="18.71" x2="12" y2="23.5"></line><line class="cls-1" x1="23.5" y1="12" x2="18.71" y2="12"></line><line class="cls-1" x1="5.29" y1="12" x2="0.5" y2="12"></line><rect class="cls-1" x="10.08" y="8.17" width="3.83" height="7.67" rx="1.92"></rect><line class="cls-1" x1="8.17" y1="8.17" x2="10.08" y2="9.13"></line><line class="cls-1" x1="15.83" y1="8.17" x2="13.92" y2="9.13"></line><line class="cls-1" x1="8.17" y1="15.83" x2="10.08" y2="14.88"></line><line class="cls-1" x1="15.83" y1="15.83" x2="13.92" y2="14.88"></line><line class="cls-1" x1="16.79" y1="12" x2="13.92" y2="12"></line><line class="cls-1" x1="7.21" y1="12" x2="10.08" y2="12"></line></g></svg>
+                    <div class="details">
+                        <span>Total Vulnerabilities</span>
+                        <h3>8</h3>
+                    </div>
+                    <div class="vulnerability-chart">
+                        <canvas id="vulnerabilityChart" width="200" height="200"></canvas>
+                    </div>
+                </div>
+        </section>
+    </main>
+    <script src="/static/scripts/vulnchart.js"></script>
+</body>
+</html>

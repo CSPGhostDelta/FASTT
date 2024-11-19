@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Results</title>
+    <link rel="stylesheet" href="/static/styles/notification.css">
+    <link rel="stylesheet" href="/static/styles/body.css">
+    <link rel="stylesheet" href="/static/styles/results.css">
+    {% include 'fonts.html' %}
+    {% include 'header.html' %}
+    {% include 'notification.html' %}
+</head>
+<body>
+    <div class="container">
+        <h2 class="title">Scan Results for {{ target.name }}</h2>
+
+        <div class="scan-details">
+            <div class="detail">
+                <strong>Scan Name</strong>: {{ target.name }}
+            </div>
+            <div class="detail">
+                <strong>Domain</strong>: {{ target.domain }}
+            </div>
+            <div class="detail">
+                <strong>Scanned On</strong>: {{ target.scanned_on.strftime('%B %d, %Y, %I:%M %p') if target.scanned_on else 'Not available' }}
+            </div>
+            <div class="detail">
+                <strong>Total Vulnerabilities</strong>: {{ vulnerabilities|length }}
+            </div>
+        </div>
+
+        <div class="vulnerability-severity">
+            <h3>Discovered Vulnerability by Severity</h3>
+            <div class="severity-levels">
+                {% set critical_count = vulnerabilities|selectattr('vulnerability_status', 'equalto', 'Critical')|list|length %}
+                {% set high_count = vulnerabilities|selectattr('vulnerability_status', 'equalto', 'High')|list|length %}
+                {% set medium_count = vulnerabilities|selectattr('vulnerability_status', 'equalto', 'Medium')|list|length %}
+                {% set low_count = vulnerabilities|selectattr('vulnerability_status', 'equalto', 'Low')|list|length %}
+                {% set info_count = vulnerabilities|selectattr('vulnerability_status', 'equalto', 'Informational')|list|length %}
+
+                <div class="severity critical">Critical<br>{{ critical_count }}</div>
+                <div class="severity high">High<br>{{ high_count }}</div>
+                <div class="severity medium">Medium<br>{{ medium_count }}</div>
+                <div class="severity low">Low<br>{{ low_count }}</div>
+                <div class="severity informational">Informational<br>{{ info_count }}</div>
+            </div>
+            <a href="{{ url_for('results.download_results', target_id=target.id) }}" class="download-btn">Download Report</a>
+        </div>
+
+        <div class="vulnerabilities-table">
+            <h3>Vulnerabilities Found</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Vulnerability Name</th>
+                        <th>Severity</th>
+                        <th>Affected URL</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if vulnerabilities %}
+                        {% for vuln in vulnerabilities %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>Broken Access Control</td>
+                            <td>{{ vuln.vulnerability_status }}</td>
+                            <td>{{ vuln.url }}</td>
+                            <td>{{ vuln.details }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">No vulnerabilities detected during the scan.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if not vulnerabilities %}
+        <div class="alert alert-success">
+            <p>Great news! No vulnerabilities were detected during the scan.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>
