@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, session, current_app
+from flask import Blueprint, jsonify, session, current_app, request
 from app.database import db, Target, Vulnerability
 import json
 import threading
@@ -8,15 +8,39 @@ import traceback
 from datetime import datetime, timedelta
 import time
 import concurrent.futures
-
-# Import templates
-from app.vuln_templates.A01.bac import run as bac_scanner
+import importlib
+import os
 
 logging.basicConfig(level=logging.DEBUG, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 scanner_app = Blueprint('scanner', __name__)
+
+def load_scan_templates():
+    scan_templates = {}
+    template_dir = os.path.join(os.path.dirname(__file__), 'vuln_templates')
+    
+    for category in os.listdir(template_dir):
+        category_path = os.path.join(template_dir, category)
+        
+        if os.path.isdir(category_path):
+            for template_file in os.listdir(category_path):
+                if template_file.endswith('.py') and template_file != '__init__.py':
+                    module_name = template_file[:-3]
+                    try:
+                        module = importlib.import_module(f'app.vuln_templates.{category}.{module_name}')
+                        
+                        if hasattr(module, 'run'):
+                            key = f'{category}_{module_name}'
+                            scan_templates[key] = module.run
+                            logger.info(f"Loaded scan template: {key}")
+                    except Exception as e:
+                        logger.error(f"Error loading scan template {module_name}: {e}")
+    
+    return scan_templates
+
+SCAN_TEMPLATES = load_scan_templates()
 
 class ScanSessionManager:
     def __init__(self, max_session_age=timedelta(hours=1)):
@@ -68,29 +92,55 @@ class ScanSessionManager:
     
 scan_session_manager = ScanSessionManager()
 
-def run_vulnerability_scan(domain, timeout=30):
+def run_vulnerability_scan(domain, scan_types=None, timeout=30):
     try:
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(bac_scanner, domain)
-            try:
-                results = future.result(timeout=timeout)
-                return results
-            except concurrent.futures.TimeoutError:
-                logger.error(f"Vulnerability scan for {domain} timed out")
-                return [{
-                    'endpoint': 'Scan Timeout',
-                    'details': f'Scan exceeded {timeout} seconds',
-                    'status': 'Error'
-                }]
+            if not scan_types:
+                scan_types = list(SCAN_TEMPLATES.keys())
+            
+            results = []
+            for scan_type in scan_types:
+                if scan_type not in SCAN_TEMPLATES:
+                    logger.error(f"Scan type {scan_type} not found")
+                    results.append({
+                        'endpoint': 'Scan Type Not Found',
+                        'details': f'Scan type {scan_type} does not exist',
+                        'status': 'Error'
+                    })
+                    continue
+                
+                try:
+                    future = executor.submit(SCAN_TEMPLATES[scan_type], domain)
+                    try:
+                        scan_results = future.result(timeout=timeout)
+                        results.extend(scan_results)
+                    except concurrent.futures.TimeoutError:
+                        logger.error(f"Scan {scan_type} for {domain} timed out")
+                        results.append({
+                            'endpoint': f'{scan_type} Timeout',
+                            'details': f'Scan exceeded {timeout} seconds',
+                            'status': 'Error'
+                        })
+                
+                except Exception as e:
+                    logger.error(f"Error in {scan_type} scan: {e}")
+                    results.append({
+                        'endpoint': f'{scan_type} Scan Error',
+                        'details': str(e),
+                        'status': 'Error'
+                    })
+            
+            return results
+    
     except Exception as e:
-        logger.error(f"Unexpected error in vulnerability scan: {e}")
+        logger.error(f"Unexpected vulnerability scan error: {e}")
         return [{
             'endpoint': 'Scan Error',
             'details': str(e),
             'status': 'Error'
         }]
 
-def perform_scan(app, session_id):
+def perform_scan(app, session_id, scan_types=None):
     with app.app_context():
         local_session = db.session.session_factory()
         
@@ -122,7 +172,7 @@ def perform_scan(app, session_id):
                 ('Initializing scan', 2),
                 ('Checking network connectivity', 2),
                 ('Performing initial reconnaissance', 2),
-                ('Scanning for access control vulnerabilities', 30),
+                ('Scanning for vulnerabilities', 30),
                 ('Analyzing results', 2),
                 ('Generating report', 2)
             ]
@@ -141,19 +191,29 @@ def perform_scan(app, session_id):
                     'status': stage
                 })
                 
-                if stage == 'Scanning for access control vulnerabilities':
+                if stage == 'Scanning for vulnerabilities':
                     try:
-                        logger.debug(f"Running BAC scan for {target.domain}")
-                        bac_results = run_vulnerability_scan(target.domain, timeout=stage_timeout)
-                        all_scan_results = bac_results
+                        logger.debug(f"Running vulnerability scans for {target.domain}")
+                        
+                        # If no specific scan types, use all available
+                        if not scan_types:
+                            scan_types = list(SCAN_TEMPLATES.keys())
+                        
+                        scan_results = run_vulnerability_scan(
+                            target.domain, 
+                            scan_types=scan_types, 
+                            timeout=stage_timeout
+                        )
+                        
+                        all_scan_results = scan_results
                         vulnerabilities = [
-                            result for result in bac_results 
+                            result for result in scan_results 
                             if result.get('vulnerability_status') in ['Vulnerable', 'Potential']
                         ]
                         
-                        logger.debug(f"BAC scan results: {vulnerabilities}")
+                        logger.debug(f"Scan results: {vulnerabilities}")
                         
-                        target.scan_results = json.dumps(bac_results)
+                        target.scan_results = json.dumps(scan_results)
                         
                         for vuln in vulnerabilities:
                             new_vulnerability = Vulnerability(
@@ -167,7 +227,7 @@ def perform_scan(app, session_id):
                         local_session.commit()
                         
                     except Exception as scan_error:
-                        logger.error(f"BAC scan error: {scan_error}")
+                        logger.error(f"Vulnerability scan error: {scan_error}")
                         logger.error(traceback.format_exc())
                         vulnerabilities = []
 
@@ -233,7 +293,7 @@ def start_scan(target_id):
         if not target:
             logger.error(f"Target not found for ID {target_id}")
             return jsonify({
-                 'error': 'Target not found',
+                'error': 'Target not found',
                 'status': 'Error'
             }), 404
 
@@ -247,19 +307,29 @@ def start_scan(target_id):
         target.status = 'Scanning'
         db.session.commit()
 
+        # Safely get scan types, defaulting to None if not present
+        scan_types = None
+        try:
+            # Check if there's a JSON body
+            if request.is_json:
+                scan_types = request.json.get('scan_types')
+        except Exception as json_error:
+            logger.warning(f"No JSON body or error parsing JSON: {json_error}")
+
         scan_session_id = scan_session_manager.create_session(target_id)
         logger.debug(f"Created scan session {scan_session_id} for target {target_id}")
 
         scanning_thread = threading.Thread(
             target=perform_scan, 
-            args=(current_app._get_current_object(), scan_session_id), 
+            args=(current_app._get_current_object(), scan_session_id, scan_types), 
             daemon=True
         )
         scanning_thread.start()
 
         return jsonify({
             'scan_session_id': scan_session_id,
-            'target_domain': target.domain
+            'target_domain': target.domain,
+            'scan_types': scan_types or list(SCAN_TEMPLATES.keys())
         })
 
     except Exception as e:
