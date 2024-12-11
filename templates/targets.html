@@ -11,7 +11,7 @@
     {% include 'header.html' %}
     {% include 'notification.html' %}
     <script src="/static/scripts/alert.js"></script>
-    <script src="/static/scripts/script.js"></script>
+    <script src="/static/scripts/script.js"></script>    
 </head>
 <body>
     <div class="container">
@@ -37,7 +37,7 @@
                                 <td data-label="No.">{{ loop.index }}</td>
                                 <td>
                                     {% if target.status == 'Completed' %}
-                                        <a href="{{ url_for('results.view_results', target_id=target.id) }}">{{ target.name }}</a>
+                                        <a href="{{ url_for('scanner.view_results', target_id=target.id) }}">{{ target.name }}</a>
                                     {% else %}
                                         {{ target.name }}
                                     {% endif %}
@@ -59,23 +59,25 @@
                                     </span>
                                     {% endif %}
                                 </td>
+                                
                                 <td data-label="Added On">{{ target.added_on }}</td>
                                 <td data-label="Actions">
                                     {% if target.status not in ['Scanning', 'Completed', 'Scan Error'] %}
                                     <form action="{{ url_for('scanner.start_scan', target_id=target.id) }}" 
-                                          method="POST" 
-                                          class="scan-form" 
-                                          data-target-id="{{ target.id }}">
-                                        <button type="submit" class="iconbutton">
-                                            <svg class="play-icon" viewBox="-1.5 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                                                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                                                <g id="SVGRepo_iconCarrier">
-                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 2.00304V22.003C0 23.5499 1.68077 24.5112 3.01404 23.7269L20.014 13.7269C21.3287 12.9536 21.3287 11.0525 20.014 10.2792L3.01404 0.279167C1.68077 -0.505108 0 0.456203 0 2.00304z" fill="#5c5c5c"></path>
-                                                </g>
-                                            </svg>
-                                        </button>
-                                    </form>
+                                    method="POST" 
+                                    class="scan-form" 
+                                    data-target-id="{{ target.id }}">
+                                  <button type="submit" class="iconbutton">
+                                      <svg class="play-icon" viewBox="-1.5 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                          <g id="SVGRepo_iconCarrier">
+                                              <path fill-rule="evenodd" clip-rule="evenodd" d="M0 2.00304V22.003C0 23.5499 1.68077 24.5112 3.01404 23.7269L20.014 13.7269C21.3287 12.9536 21.3287 11.0525 20.014 10.2792L3.01404 0.279167C1.68077 -0.505108 0 0.456203 0 2.00304z" fill="#5c5c5c"></path>
+                                          </g>
+                                      </svg>
+                                  </button>
+                              </form>
+                              
                                     {% endif %}
                                     <form action="{{ url_for('targets.delete_target', target_id=target.id) }}" method="post" style="display:inline;" onsubmit="confirmDelete(event, this)">
                                         <button type="submit" class="iconbutton">

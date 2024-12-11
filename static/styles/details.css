@@ -1,0 +1,101 @@
+
+
+.container {
+    max-width: 95%;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.container h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.container hr {
+    border: none;
+    border-top: 1px solid #000;
+    margin: 10px 0;
+}
+
+.info-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    margin-right: 100px;
+}
+
+.info-box {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    flex: 0 0 60%;
+    margin-right: 20px;
+}
+
+.info-box:last-child {
+    margin-right: 0;
+}
+
+.info-box table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.info-box table td {
+    padding: 8px 0;
+}
+
+.info-box table td:first-child {
+    font-weight: bold;
+}
+
+.severity {
+    text-align: center;
+    border: 2px solid;
+    border-radius: 50%;
+    width: 150px;
+    height: 150px;
+    display: flex;
+    flex-direction: column; 
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    margin-right: 150px;
+    position: relative;
+}
+
+.severity::before {
+    content: "Severity";
+    position: absolute;
+    top: -35px;
+    font-size: 20px;
+    font-weight: 500;
+    color: #333;
+}
+
+.details {
+    margin-top: 20px;
+}
+
+.details h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.details-box {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.details-box h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #000;
+    padding-bottom: 5px;
+}

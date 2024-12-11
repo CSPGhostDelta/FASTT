@@ -16,7 +16,6 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = "False"
 app.config["SECRET_KEY"] = "secretkey"
 db.init_app(app)
 
-# Register blueprints
 app.register_blueprint(login_app)
 app.register_blueprint(profile_app)
 app.register_blueprint(scanner_app)

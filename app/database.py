@@ -21,35 +21,63 @@ class User(db.Model):
     email = db.Column(db.String(100))
     phone = db.Column(db.String(15))
     address = db.Column(db.String(255))
-    targets = db.relationship("Target", back_populates="user") 
+
+    targets = db.relationship("Target", back_populates="user")
 
 class Target(db.Model):
-    __tablename__ = "targets"
+    __tablename__ = 'targets'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    domain = db.Column(db.String(255), nullable=False)
-    status = db.Column(db.String(50), default='Ready')
-    note = db.Column(db.Text)
-    added_on = db.Column(db.DateTime)
-    scan_results = db.Column(db.Text, nullable=True)
-    scanned_on = db.Column(db.DateTime, nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    user = db.relationship("User", back_populates="targets")
+    name = db.Column(db.String(255))
+    domain = db.Column(db.String(255))
+    status = db.Column(db.String(50))
+    note = db.Column(db.String(255))
+    added_on = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    scan_progress = db.Column(db.Integer, default=0)
+    scan_error = db.Column(db.String(255), nullable=True)
 
+    user = db.relationship('User', back_populates='targets')
 class Vulnerability(db.Model):
-    __tablename__ = "vulnerabilities"
     id = db.Column(db.Integer, primary_key=True)
-    scan_name = db.Column(db.String(100))
-    endpoint = db.Column(db.String(255))
-    details = db.Column(db.Text)
-    url = db.Column(db.String(500))
+    name = db.Column(db.String(255), nullable=False)
+    details = db.Column(db.Text, nullable=False)
+    severity = db.Column(db.String(50), nullable=False)
+    cvss_score = db.Column(db.String(50), nullable=False)
+    endpoint = db.Column(db.String(255), nullable=False)
+    scan_name = db.Column(db.String(255), nullable=False)
+    full_description = db.Column(db.Text, nullable=True)
+    remediation = db.Column(db.Text, nullable=True)
+    cwe_code = db.Column(db.String(50), nullable=True) 
+    cve_code = db.Column(db.String(50), nullable=True)
+    cvss_metrics = db.Column(db.String(255), nullable=True)
+    
+    def __repr__(self):
+        return f"<Vulnerability {self.name}>"
+
+class scanlog(db.Model):
+    __tablename__ = 'scan_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    target_id = db.Column(db.Integer, db.ForeignKey('targets.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    log_content = db.Column(db.Text, nullable=False)
+
+    target = db.relationship('Target', backref=db.backref('scan_logs', lazy=True))
 
     def __repr__(self):
-        return f'<Vulnerability {self.details}>'
+        return f'<ScanLog Target: {self.target_id}, Timestamp: {self.timestamp}>'
 
 def get_vulnerabilities(scan_name):
     vulnerabilities = Vulnerability.query.filter_by(scan_name=scan_name).all()
-    return [{'details': vuln.details, 'endpoint': vuln.endpoint} for vuln in vulnerabilities]
+    return [
+        {
+            'name': vuln.name,
+            'details': vuln.details,
+            'severity': vuln.severity,
+            'cvss_score': vuln.cvss_score,
+            'endpoint': vuln.endpoint
+        } 
+        for vuln in vulnerabilities
+    ]
 
 def check_user():
     return User.query.count() > 0

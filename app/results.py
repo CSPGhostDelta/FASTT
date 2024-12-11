@@ -1,90 +1,80 @@
-from flask import Blueprint, render_template, session, redirect, url_for, abort
-from app.database import db, Target, Vulnerability, get_vulnerabilities
-import json
-from datetime import datetime
+from flask import Blueprint, send_file
+from app.database import db, Target, Vulnerability
+from io import BytesIO
 
 results_app = Blueprint('results', __name__, template_folder="../templates")
 
-@results_app.route('/homedashboard/results/<int:target_id>')
-def view_results(target_id):
-    if 'username' not in session:
-        return redirect(url_for('app.login'))
+@results_app.route('/download_html/<int:target_id>', methods=['GET'])
+def download_html(target_id):
+    target = Target.query.get_or_404(target_id)
+    vulnerabilities = Vulnerability.query.filter_by(scan_name=target.name).all()
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Scan Results - {target.name}</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 20px; }}
+            h1 {{ color: #333; }}
+            table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
+            th, td {{ padding: 10px; text-align: left; border: 1px solid #ddd; }}
+            th {{ background-color: #f4f4f4; }}
+            .vuln-severity-critical {{ color: red; }}
+            .vuln-severity-high {{ color: orange; }}
+            .vuln-severity-medium {{ color: yellow; }}
+            .vuln-severity-low {{ color: green; }}
+        </style>
+    </head>
+    <body>
+        <h1>Scan Results for Target: {target.name}</h1>
+        <p><strong>Domain:</strong> {target.domain}</p>
+        <p><strong>Scan Status:</strong> {target.status}</p>
+        <p><strong>Scanned On:</strong> {target.added_on.strftime('%B %d, %Y, %I:%M %p')}</p>
+        <p><strong>Total Vulnerabilities:</strong> {len(vulnerabilities)}</p>
+
+        <h2>Vulnerabilities Detected</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Vulnerability Name</th>
+                    <th>Severity</th>
+                    <th>CVSS Score</th>
+                    <th>Details</th>
+                    <th>Affected Endpoint</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
     
-    target = db.session.get(Target, target_id)
+    for index, vuln in enumerate(vulnerabilities):
+        severity_class = f"vuln-severity-{vuln.severity.lower()}"
+        html_content += f"""
+                <tr class="{severity_class}">
+                    <td>{index + 1}</td>
+                    <td>{vuln.name}</td>
+                    <td>{vuln.severity}</td>
+                    <td>{vuln.cvss_score}</td>
+                    <td>{vuln.details}</td>
+                    <td>{vuln.endpoint}</td>
+                </tr>
+        """
     
-    if not target:
-        abort(404, description="Target not found")
-
-    vulnerabilities = []
-    try:
-        if target.scan_results:
-            all_results = json.loads(target.scan_results)
-            vulnerabilities = [
-                vuln for vuln in all_results 
-                if vuln.get('vulnerability_status') in ['Vulnerable', 'Potential']
-            ]
-    except (json.JSONDecodeError, TypeError):
-        vulnerabilities = []
-
-    db_vulnerabilities = Vulnerability.query.filter_by(scan_name=target.name).all()
-
-    return render_template('results.html', 
-                           target=target, 
-                           vulnerabilities=vulnerabilities,
-                           db_vulnerabilities=db_vulnerabilities)
-
-@results_app.route('/homedashboard/results/download/<int:target_id>')
-def download_results(target_id):
-    if 'username' not in session:
-        return redirect(url_for('app.login'))
-
-    target = db.session.get(Target, target_id)
+    # Closing HTML tags
+    html_content += """
+            </tbody>
+        </table>
+    </body>
+    </html>
+    """
     
-    if not target:
-        abort(404, description="Target not found")
-
-    results = {
-        'metadata': {
-            'scan_timestamp': datetime.now().isoformat(),
-            'username': session.get('username', 'Unknown')
-        },
-        'target_info': {
-            'name': target.name,
-            'domain': target.domain,
-            'status': target.status,
-            'scanned_on': target.scanned_on.isoformat() if target.scanned_on else None
-        },
-        'scan_results': [],
-        'database_vulnerabilities': []
-    }
-
-    try:
-        if target.scan_results:
-            results['scan_results'] = json.loads(target.scan_results)
-    except (json.JSONDecodeError, TypeError):
-        results['scan_results'] = []
-
-    db_vulnerabilities = Vulnerability.query.filter_by(scan_name=target.name).all()
-    results['database_vulnerabilities'] = [
-        {
-            'details': vuln.details,
-            'endpoint': vuln.endpoint
-        } for vuln in db_vulnerabilities
-    ]
-
-    # download
-    import io
-    from flask import send_file
-
-    json_results = json.dumps(results, indent=2)
+    # Convert the HTML content to a BytesIO object
+    buffer = BytesIO()
+    buffer.write(html_content.encode('utf-8'))
+    buffer.seek(0)
     
-    output = io.BytesIO()
-    output.write(json_results.encode('utf-8'))
-    output.seek(0)
-
-    return send_file(
-        output, 
-        mimetype='application/json', 
-        as_attachment=True, 
-        download_name=f'{target.name}_scan_results.json'
-    )
+    # Send the HTML content as a downloadable file
+    return send_file(buffer, as_attachment=True, download_name=f"scan_results_{target.name}.html", mimetype="text/html")

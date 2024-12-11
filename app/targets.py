@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from datetime import datetime
-from app.database import db, Target
+from app.database import db, Target, Vulnerability, scanlog
 
 targets_app = Blueprint("targets", __name__, template_folder="../templates", static_folder="../static")
 
@@ -39,6 +39,7 @@ def addtarget():
             added_on=datetime.now(),
             user_id=user_id
         )
+
         db.session.add(new_target)  
         db.session.commit() 
         flash('Target added successfully!', 'success') 
@@ -50,9 +51,27 @@ def addtarget():
 def delete_target(target_id):
     target = Target.query.get(target_id)
     if target:
-        db.session.delete(target)
-        db.session.commit()
-        flash('Target has been deleted successfully!', 'success')
+        try:
+
+            related_logs = scanlog.query.filter_by(target_id=target.id).all()
+            for log in related_logs:
+                db.session.delete(log)
+
+            target_vulnerabilities = Vulnerability.query.filter_by(scan_name=target.name).all()
+            for vulnerability in target_vulnerabilities:
+                db.session.delete(vulnerability)
+
+            db.session.delete(target)
+            db.session.commit()
+
+            flash(f'Target "{target.name}" have been deleted successfully!', 'success')
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error occurred while deleting target: {str(e)}', 'error')
     else:
         flash('Target not found.', 'error')
+
     return redirect(url_for('targets.target'))
+
+

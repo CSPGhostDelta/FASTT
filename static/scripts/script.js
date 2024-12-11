@@ -76,68 +76,6 @@ function toggleProfileOptions() {
     }
 }
 
-document.addEventListener('click', function (event) {
-    const profileOptions = document.getElementById('profileOptions');
-    const userIcon = document.getElementById('userIcon');
-    if (!profileOptions.contains(event.target) && !userIcon.contains(event.target)) {
-        profileOptions.style.display = 'none';
-    }
-});
-
-function startScan(targetId) {
-    Swal.fire({
-        title: 'Initiating Scan',
-        html: 'Preparing to scan the target...',
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    fetch(`/scan/${targetId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.scan_session_id) {
-            trackScanProgress(data.scan_session_id, targetId);
-        } else {
-            Swal.fire('Error', 'Could not start scan', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Scan initiation error:', error);
-        Swal.fire('Error', 'Failed to start scan', 'error');
-    });
-}
-
-function trackScanProgress(scanSessionId, targetId) {
-    let progressInterval = setInterval(() => {
-        fetch(`/scan/status/${scanSessionId}`)
-        .then(response => response.json())
-        .then(data => { if (data.is_complete) {
-                clearInterval(progressInterval);
-                Swal.fire({
-                    title: 'Scan Completed',
-                    text: 'The scan has finished successfully.',
-                    icon: 'success'
-                }).then(() => {
-                    window.location.reload();
-                });
-            } else {
-                Swal.getContent().innerHTML = `Scanning... ${data.progress}%<br>Status: ${data.status}`;
-            }
-        })
-        .catch(error => {
-            clearInterval(progressInterval);
-            console.error('Error fetching scan status:', error);
-            Swal.fire('Error', 'Failed to retrieve scan status', 'error');
-        });
-    }, 2000);
-}
-
 function confirmDelete(event, form) {
     event.preventDefault();
     Swal.fire({
@@ -155,107 +93,48 @@ function confirmDelete(event, form) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const scanForms = document.querySelectorAll('.scan-form');
+// Real-time progress update function for scanning
+$(document).ready(function() {
+    $(".scan-form").submit(function(event) {
+        var targetId = $(this).data('target-id');
+        var form = $(this);
+        var targetStatus = $('#status-' + targetId);
+        var statusElement = targetStatus.find("span");
+        var progressBar = $('#progress-bar-' + targetId);
 
-    scanForms.forEach(form => {
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const targetId = this.querySelector('input[name="target_id"]')?.value || 
-                             this.getAttribute('data-target-id');
-            const statusCell = document.getElementById(`status-${targetId}`);
+        // Set status to scanning immediately after clicking scan button
+        statusElement.text("Scanning...").removeClass().addClass("status-scanning");
+        progressBar.css('width', '0%').text('0%');
 
-            statusCell.innerHTML = `
-                <span class="status-scanning">Scanning...</span>
-                <div class="progress-container">
-                    <div class="progress-bar" id="progress-${targetId}"></div>
-                </div>
-            `;
+        // Perform AJAX request to start scan
+        $.post(form.attr('action'), function(response) {
+            if (response.status === 'Scanning') {
+                // Poll for progress updates
+                var progressInterval = setInterval(function() {
+                    $.get("/scanner/scan_progress/" + targetId, function(progressResponse) {
+                        var progress = progressResponse.progress;
+                        var statusText = "Scanning... (" + progress + "%)";
+                        
+                        // Update status and progress bar
+                        statusElement.text(statusText);
+                        progressBar.css('width', progress + '%').text(progress + '%');
+                        
+                        if (progress === 100) {
+                            clearInterval(progressInterval);
+                            statusElement.text('Completed').removeClass().addClass("status-completed");
+                            progressBar.css('width', '100%').text('100%');
 
-            // Send scan request
-            fetch(`/scan/${targetId}`, { 
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                console.log('Scan initiation response status:', response.status);
-                
-                 if (!response.ok) {
-                    return response.json().then(errData => {
-                        throw new Error(errData.error || 'Network response was not ok');
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.scan_session_id) {
-                    trackScanProgress(data.scan_session_id, targetId);
-                } else {
-                    throw new Error('No scan session ID received');
-                }
-            })
-            .catch(error => {
-                console.error('Scan initiation error:', error);
-                statusCell.innerHTML = `
-                    <span class="status-error">Scan Error</span>
-                    <span class="ml-2" data-toggle="tooltip" title="${error.message}">
-                        <i class="fas fa-exclamation-circle text-danger"></i>
-                    </span>
-                `;
-            });
-        });
-    });
-
-    function trackScanProgress(scanSessionId, targetId) {
-        const progressBar = document.getElementById(`progress-${targetId}`);
-        const statusCell = document.getElementById(`status-${targetId}`);
-
-        function updateProgress() {
-            fetch(`/scan_status/${scanSessionId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch scan status');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (progressBar) {
-                        progressBar.style.width = `${data.progress}%`;
-                    }
-
-                    if (data.is_complete) {
-                        if (data.status.toLowerCase().includes('error')) {
-                            statusCell.innerHTML = `
-                                <span class="status-error">Scan Error</span>
-                                <span class="ml-2" data-toggle="tooltip" title="${data.status}">
-                                    <i class="fas fa-exclamation-circle text-danger"></i>
-                                </span>
-                            `;
-                        } else {
-                            statusCell.innerHTML = `
-                                <span class="status-completed">Completed</span>
-                            `;
+                            // Optionally, redirect to the results page or show a success message
+                            window.location.href = '/results/' + targetId;
                         }
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1000);
-                    } else {
-                        setTimeout(updateProgress, 500);
-                    }
-                })
-                .catch(error => {
-                    console.error('Progress tracking error:', error);
-                    statusCell.innerHTML = `
-                        <span class="status-error">Scan Error</span>
-                        <span class="ml-2" data-toggle="tooltip" title="${error.message}">
-                            <i class="fas fa-exclamation-circle text-danger"></i>
-                        </span>
-                    `;
-                });
-        }
-        updateProgress();
-    }
+                    });
+                }, 2000); // Update every 2 seconds
+            }
+        }).fail(function() {
+            statusElement.text('Scan Error').removeClass().addClass("status-error");
+            progressBar.css('width', '0%').text('0%');
+        });
+
+        event.preventDefault();
+    });
 });

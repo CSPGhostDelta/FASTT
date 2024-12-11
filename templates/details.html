@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ vulnerability.name or 'Scan Results' }}</title>
+    <link rel="stylesheet" href="/static/styles/notification.css">
+    <link rel="stylesheet" href="/static/styles/body.css">
+    <link rel="stylesheet" href="/static/styles/details.css">
+    {% include 'fonts.html' %}
+    {% include 'header.html' %}
+    {% include 'notification.html' %}
+</head>
+<body>
+    <div class="container">
+        <h1>{{ vulnerability.name or 'N/A' }}</h1>
+        <hr>
+        <div class="info-container">
+            <div class="info-box">
+                <table>
+                    <tr>
+                        <td>Type</td>
+                        <td>{{ vulnerability.type or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <td>CVSS Score</td>
+                        <td>{{ vulnerability.cvss_score or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <td>CVSS Metrics</td>
+                        <td>{{ vulnerability.cvss_metrics or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <td>CVE Code</td>
+                        <td>{{ vulnerability.cve_code or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <td>CWE Code</td>
+                        <td>{{ vulnerability.cwe_code or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Affected Endpoint</td>
+                        <td>{{ vulnerability.endpoint or 'N/A' }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="severity" style="
+            border-color: {{ severity_color(vulnerability.severity) }}; 
+            color: {{ severity_color(vulnerability.severity) }};">
+                <div>{{ vulnerability.severity or 'N/A' }}</div>
+                <div>{{ vulnerability.cvss_score or 'N/A' }}</div>
+            </div>            
+        </div>
+        <div class="details">
+            <h2>Details</h2>
+            <div class="details-box">
+                <h3>Full Description</h3>
+                <p>{{ vulnerability.full_description or 'N/A' }}</p>
+            </div>
+            <div class="details-box">
+                <h3>Remediation</h3>
+                <p>{{ vulnerability.remediation or 'N/A' }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

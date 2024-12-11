@@ -1,105 +1,163 @@
+/* Container Styling */
 .container {
     background-color: #fff;
-    width: 90%;
-    max-width: 800px;
     padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.title {
-    font-size: 1.5em;
-    margin-bottom: 15px;
-}
-
-.scan-details {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
+.header {
+    font-size: 24px;
+    font-weight: bold;
     margin-bottom: 20px;
 }
 
-.detail {
-    width: 45%;
-    font-size: 1em;
-}
-
-.vulnerability-severity {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.section {
     margin-bottom: 20px;
 }
 
-.vulnerability-severity h3 {
-    margin-bottom: 5px;
+.section-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
-.severity-levels {
-    display: flex;
-    gap: 10px;
+.details, .vulnerabilities {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+.details p {
+    margin: 5px 0;
 }
 
 .severity {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 5px;
-    width: 60px;
-    border-radius: 8px;
-    color: #fff;
-    font-size: 0.9em;
-    text-align: center;
+    justify-content: space-evenly;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
-.critical { background-color: #e74c3c; }
-.high { background-color: #e67e22; }
-.medium { background-color: #f1c40f; color: #333; }
-.low { background-color: #27ae60; }
-.informational { background-color: #3498db; }
+.severity div {
+    text-align: center;
+    flex: 1;
+    padding: 5px;
+}
+
+.severity div span:first-child {
+    font-size: 24px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.severity .critical span {
+    color: #ff0000;
+}
+
+.severity .high span {
+    color: #ff4500;
+}
+
+.severity .medium span {
+    color: #ffa500;
+}
+
+.severity .low span {
+    color: #32cd32; 
+}
+
+.severity .informational span {
+    color: #1e90ff;
+}
+
+.download-report {
+    text-align: right;
+    margin-top: 10px;
+}
 
 .download-btn {
-    padding: 8px 16px;
-    background-color: #3498db;
+    background-color: #007bff;
     color: #fff;
     border: none;
-    border-radius: 4px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
     cursor: pointer;
-    font-size: 0.9em;
+    display: inline-flex;
+    align-items: center;
+}
+
+.download-btn i {
+    margin-right: 5px;
 }
 
 .vulnerabilities-table {
     margin-top: 20px;
 }
 
-.vulnerabilities-table h3 {
-    margin-bottom: 10px;
-}
-
-table {
+.vulnerabilities table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9em;
 }
 
-th, td {
-    padding: 12px;
+.vulnerabilities th, .vulnerabilities td {
+    padding: 8px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
 }
 
-th {
-    background-color: #f4f4f4;
+.vulnerabilities th {
+    background-color: #23c8ce69;
+    font-weight: bold;
 }
 
-.severity.low {
-    color: #27ae60;
+.vulnerabilities td.severity {
+    font-weight: 500;
 }
 
-.severity.high {
-    color: #e67e22;
+.vulnerabilities td.severity.critical {
+    color: #ff0000; 
 }
 
-.severity.critical {
-    color: #e74c3c;
+.vulnerabilities td.severity.high {
+    color: #ff4500;
+}
+
+.vulnerabilities td.severity.medium {
+    color: #ffa500;
+}
+
+.vulnerabilities td.severity.low {
+    color: #32cd32;
+}
+
+.vulnerabilities td.severity.informational {
+    color: #1e90ff;
+}
+
+
+@media (max-width: 768px) {
+    .severity {
+        flex-direction: column;
+        align-items: center; 
+    }
+
+    .severity div {
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .download-report {
+        text-align: left;
+    }
+
+    .vulnerabilities table {
+        font-size: 14px;
+    }
+
+    .vulnerabilities th, .vulnerabilities td {
+        padding: 6px;
+    }
 }

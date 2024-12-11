@@ -176,6 +176,14 @@ header {
     background-color: var(--card-color);
 }
 
+.details, .severity, .vulnerabilities {
+    background-color: var(--card-color);
+}
+
+.vulnerabilities tr,th {
+    color: var(--fill-color);
+}
+
 .container tr,th {
     color: var(--fill-color);
 }
@@ -197,10 +205,20 @@ header {
     color: var(--status-ready);
 }
 
+
 .summary-item, .vulnerabilities-found table {
     background-color: var(--card-color-2);
 }
 
 hr {
     background-color: var(--text-color);
+}
+
+a {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.logotext a {
+    color: white;
 }

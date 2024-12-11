@@ -1,360 +1,266 @@
-from flask import Blueprint, jsonify, session, current_app, request
-from app.database import db, Target, Vulnerability
-import json
-import threading
-import uuid
-import logging
-import traceback
-from datetime import datetime, timedelta
-import time
-import concurrent.futures
-import importlib
 import os
-
-logging.basicConfig(level=logging.DEBUG, 
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+import importlib.util
+import requests
+import logging
+from flask import Blueprint, jsonify, flash, render_template, redirect, url_for
+from app.database import db, Target, Vulnerability, scanlog
+from time import sleep
+from datetime import datetime
 
 scanner_app = Blueprint('scanner', __name__)
 
-def load_scan_templates():
-    scan_templates = {}
-    template_dir = os.path.join(os.path.dirname(__file__), 'vuln_templates')
-    
-    for category in os.listdir(template_dir):
-        category_path = os.path.join(template_dir, category)
-        
-        if os.path.isdir(category_path):
-            for template_file in os.listdir(category_path):
-                if template_file.endswith('.py') and template_file != '__init__.py':
-                    module_name = template_file[:-3]
-                    try:
-                        module = importlib.import_module(f'app.vuln_templates.{category}.{module_name}')
-                        
-                        if hasattr(module, 'run'):
-                            key = f'{category}_{module_name}'
-                            scan_templates[key] = module.run
-                            logger.info(f"Loaded scan template: {key}")
-                    except Exception as e:
-                        logger.error(f"Error loading scan template {module_name}: {e}")
-    
-    return scan_templates
+logger = logging.getLogger('scanner')
+logger.setLevel(logging.DEBUG)
+file_handler = logging.FileHandler('scanner.log')
+file_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
-SCAN_TEMPLATES = load_scan_templates()
+def get_all_templates(vuln_templates_folder='app/vuln_templates/'):
+    templates = []
+    for root, dirs, files in os.walk(vuln_templates_folder):
+        for file in files:
+            if file.endswith('.py') and file != '__init__.py':
+                module_path = os.path.relpath(os.path.join(root, file), start='app').replace(os.sep, '.')
+                templates.append(module_path[:-3])
+    return templates
 
-class ScanSessionManager:
-    def __init__(self, max_session_age=timedelta(hours=1)):
-        self._sessions = {}
-        self._lock = threading.Lock()
-        self._max_session_age = max_session_age
+def import_module(module_name):
+    module_path = os.path.join(os.getcwd(), 'app', *module_name.split('.')) + '.py'
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
-    def create_session(self, target_id):
-        session_id = str(uuid.uuid4())
-        
-        session_data = {
-            'target_id': target_id,
-            'progress': 0,
-            'status': 'Initializing',
-            'is_complete': False,
-            'vulnerabilities': [],
-            'created_at': datetime.now(),
-            'start_time': time.time()
-        }
-        
-        with self._lock:
-            self._sessions[session_id] = session_data
-        
-        return session_id
+def validate_scan_template(template_module):
+    required_keys = {'name', 'type', 'severity', 'description', 'payloads'}
+    if not hasattr(template_module, 'SCAN_TEMPLATE'):
+        raise ValueError(f"The template {template_module} does not have a SCAN_TEMPLATE.")
 
-    def get_session(self, session_id):
-        with self._lock:
-            return self._sessions.get(session_id, {})
+    scan_info = template_module.SCAN_TEMPLATE.get('info', {})
+    if not required_keys.issubset(scan_info.keys()):
+        missing_keys = required_keys - scan_info.keys()
+        raise ValueError(f"The template {template_module} is missing required keys: {missing_keys}")
 
-    def update_session(self, session_id, updates):
-        with self._lock:
-            if session_id in self._sessions:
-                self._sessions[session_id].update(updates)
+def perform_scan(domain, template_module):
+    # Ensure domain ends with a slash
+    if not domain.endswith('/'):
+        domain = f'{domain}/'
 
-    def check_session_timeout(self, session_id, max_duration=300):
-        with self._lock:
-            session = self._sessions.get(session_id, {})
-            start_time = session.get('start_time', 0)
-            current_time = time.time()
-            
-            if current_time - start_time > max_duration:
-                session.update({
-                    'is_complete': True,
-                    'status': f'Scan Timeout: Exceeded {max_duration} seconds',
-                    'progress': 100
-                })
-                return True
-        return False
-    
-scan_session_manager = ScanSessionManager()
+    validate_scan_template(template_module)
+    results = []
+    scan_info = template_module.SCAN_TEMPLATE.get('info', {})
 
-def run_vulnerability_scan(domain, scan_types=None, timeout=30):
-    try:
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            if not scan_types:
-                scan_types = list(SCAN_TEMPLATES.keys())
-            
-            results = []
-            for scan_type in scan_types:
-                if scan_type not in SCAN_TEMPLATES:
-                    logger.error(f"Scan type {scan_type} not found")
+    # Default values for missing template fields
+    default_values = {
+        'name': 'N/A',
+        'severity': 'N/A',
+        'description': 'N/A',
+        'cvss_score': 'N/A',
+        'full_description': 'N/A',
+        'remediation': 'N/A',
+        'type': 'N/A',
+        'matcher': 'N/A',
+        'cwe_code': 'N/A',
+        'cve_code': 'N/A',
+        'cvss_metrics': 'N/A',
+    }
+
+    # Replace missing or empty values with default "N/A"
+    for key, default_value in default_values.items():
+        if not scan_info.get(key):
+            scan_info[key] = default_value
+
+    payload_info = scan_info.get('payloads', {})
+    payload_type = payload_info.get('payload_type', None)
+    payload = payload_info.get('payload', [])
+
+    if payload_type not in ['single', 'wordlist']:
+        raise ValueError("Invalid payload type specified. Choose either 'single' or 'wordlist'.")
+
+    if payload_type == 'single':
+        if isinstance(payload, list):
+            for path in payload:
+                if isinstance(path, str):
+                    # Ensure there is no extra slash before appending the payload
+                    endpoint = f'{domain}{path.lstrip("/")}'
                     results.append({
-                        'endpoint': 'Scan Type Not Found',
-                        'details': f'Scan type {scan_type} does not exist',
-                        'status': 'Error'
+                        'name': scan_info['name'],
+                        'details': scan_info['description'], 
+                        'severity': scan_info['severity'],
+                        'cvss_score': scan_info['cvss_score'],
+                        'cvss_metrics': scan_info['cvss_metrics'],
+                        'endpoint': endpoint,
+                        'full_description': scan_info.get('full_description', 'N/A'),
+                        'remediation': scan_info.get('remediation', 'N/A'),
+                        'type': scan_info.get('type', 'N/A'),
+                        'cwe_code': scan_info.get('cwe_code', 'N/A'),
+                        'cve_code': scan_info.get('cve_code', 'N/A')
                     })
-                    continue
-                
-                try:
-                    future = executor.submit(SCAN_TEMPLATES[scan_type], domain)
-                    try:
-                        scan_results = future.result(timeout=timeout)
-                        results.extend(scan_results)
-                    except concurrent.futures.TimeoutError:
-                        logger.error(f"Scan {scan_type} for {domain} timed out")
+                else:
+                    raise ValueError("For 'single' payload type, each 'payload' should be a string representing the path.")
+        else:
+            raise ValueError("For 'single' payload type, 'payload' should be a list of paths.")
+
+    elif payload_type == 'wordlist':
+        if isinstance(payload, list):  # Wordlist payload should be a list of filenames
+            for wordlist_file in payload:
+                wordlist_path = os.path.join('app', 'vuln_templates', 'resources', 'wordlist', wordlist_file)
+                if os.path.isfile(wordlist_path):
+                    with open(wordlist_path, 'r') as f:
+                        wordlist = f.readlines()
+                    for word in wordlist:
+                        endpoint = f'{domain}{word.strip().lstrip("/")}'
                         results.append({
-                            'endpoint': f'{scan_type} Timeout',
-                            'details': f'Scan exceeded {timeout} seconds',
-                            'status': 'Error'
+                            'name': scan_info['name'],
+                            'details': scan_info['description'], 
+                            'severity': scan_info['severity'],
+                            'cvss_score': scan_info['cvss_score'],
+                            'cvss_metrics': scan_info['cvss_metrics'],
+                            'endpoint': endpoint,
+                            'full_description': scan_info.get('full_description', 'N/A'),
+                            'remediation': scan_info.get('remediation', 'N/A'),
+                            'type': scan_info.get('type', 'N/A'),
+                            'cwe_code': scan_info.get('cwe_code', 'N/A'),
+                            'cve_code': scan_info.get('cve_code', 'N/A')
                         })
-                
-                except Exception as e:
-                    logger.error(f"Error in {scan_type} scan: {e}")
-                    results.append({
-                        'endpoint': f'{scan_type} Scan Error',
-                        'details': str(e),
-                        'status': 'Error'
-                    })
-            
-            return results
-    
-    except Exception as e:
-        logger.error(f"Unexpected vulnerability scan error: {e}")
-        return [{
-            'endpoint': 'Scan Error',
-            'details': str(e),
-            'status': 'Error'
-        }]
+                else:
+                    raise ValueError(f"Wordlist file {wordlist_file} not found.")
+        else:
+            raise ValueError("For 'wordlist' payload type, 'payload' should be a list of wordlist file names.")
 
-def perform_scan(app, session_id, scan_types=None):
-    with app.app_context():
-        local_session = db.session.session_factory()
-        
-        try:
-            logger.debug(f"Starting scan for session {session_id}")
-            session_data = scan_session_manager.get_session(session_id)
-            target_id = session_data.get('target_id')
-            
-            if not target_id:
-                logger.error(f"No target ID found for session {session_id}")
-                scan_session_manager.update_session(session_id, {
-                    'is_complete': True,
-                    'status': 'Scan Error: No Target ID',
-                    'progress': 100
-                })
-                return
+    return results
 
-            target = local_session.query(Target).get(target_id)
-            if not target:
-                logger.error(f"Target not found for ID {target_id}")
-                scan_session_manager.update_session(session_id, {
-                    'is_complete': True,
-                    'status': 'Scan Error: Target Not Found',
-                    'progress': 100
-                })
-                return
+# Log vulnerability details
+def log_vulnerability(vuln):
+    logger.info(
+        f"Vulnerability Found: {vuln['name']} | Type: {vuln['type']} | Severity: {vuln['severity']} | "
+        f"Matcher: {vuln['matcher']} | Endpoint: {vuln['endpoint']} | CWE: {vuln['cwe_code']} | CVE: {vuln['cve_code']}"
+    )
 
-            scan_stages = [
-                ('Initializing scan', 2),
-                ('Checking network connectivity', 2),
-                ('Performing initial reconnaissance', 2),
-                ('Scanning for vulnerabilities', 30),
-                ('Analyzing results', 2),
-                ('Generating report', 2)
-            ]
-
-            all_scan_results = []
-            vulnerabilities = []
-
-            for stage_index, (stage, stage_timeout) in enumerate(scan_stages):
-                if scan_session_manager.check_session_timeout(session_id):
-                    logger.error(f"Scan session {session_id} timed out")
-                    return
-
-                progress = int((stage_index + 1) / len(scan_stages) * 100)
-                scan_session_manager.update_session(session_id, {
-                    'progress': progress,
-                    'status': stage
-                })
-                
-                if stage == 'Scanning for vulnerabilities':
-                    try:
-                        logger.debug(f"Running vulnerability scans for {target.domain}")
-                        
-                        # If no specific scan types, use all available
-                        if not scan_types:
-                            scan_types = list(SCAN_TEMPLATES.keys())
-                        
-                        scan_results = run_vulnerability_scan(
-                            target.domain, 
-                            scan_types=scan_types, 
-                            timeout=stage_timeout
-                        )
-                        
-                        all_scan_results = scan_results
-                        vulnerabilities = [
-                            result for result in scan_results 
-                            if result.get('vulnerability_status') in ['Vulnerable', 'Potential']
-                        ]
-                        
-                        logger.debug(f"Scan results: {vulnerabilities}")
-                        
-                        target.scan_results = json.dumps(scan_results)
-                        
-                        for vuln in vulnerabilities:
-                            new_vulnerability = Vulnerability(
-                                scan_name=target.name,
-                                endpoint=vuln.get('endpoint', 'Unknown'),
-                                details=vuln.get('details', 'No additional details'),
-                                url=vuln.get('url', target.domain + vuln.get('endpoint', ''))
-                            )
-                            local_session.add(new_vulnerability)
-                        
-                        local_session.commit()
-                        
-                    except Exception as scan_error:
-                        logger.error(f"Vulnerability scan error: {scan_error}")
-                        logger.error(traceback.format_exc())
-                        vulnerabilities = []
-
-                start_time = time.time()
-                while time.time() - start_time < stage_timeout:
-                    if scan_session_manager.check_session_timeout(session_id):
-                        return
-                    time.sleep(1)
-
-            try:
-                target.status = 'Completed'
-                target.scanned_on = datetime.now()
-                local_session.commit()
-                logger.debug(f"Scan completed for target {target_id}")
-            except Exception as update_error:
-                logger.error(f"Error updating target status: {update_error}")
-                local_session.rollback()
-
-            scan_session_manager.update_session(session_id, {
-                'progress': 100,
-                'status': 'Completed',
-                'is_complete': True,
-                'vulnerabilities': vulnerabilities,
-                'total_scan_results': all_scan_results
-            })
-
-        except Exception as error:
-            logger.error(f"Scan error for session {session_id}: {error}")
-            logger.error(traceback.format_exc())
-
-            scan_session_manager.update_session(session_id, {
-                'is_complete': True,
-                'status': f'Scan Error: {str(error)}',
-                'progress': 100,
-                'vulnerabilities': vulnerabilities
-            })
-
-            try:
-                target = local_session.query(Target).get(target_id)
-                if target:
-                    target.status = 'Scan Error'
-                    local_session.commit()
-            except Exception as final_error:
-                logger.error(f"Final error updating target status: {final_error}")
-                local_session.rollback()
-
-        finally:
-            local_session.close()
-
-@scanner_app.route('/scan/<int:target_id>', methods=['POST'])
+# Update start_scan to handle new details
+@scanner_app.route('/start_scan/<int:target_id>', methods=['POST'])
 def start_scan(target_id):
+    target = Target.query.get_or_404(target_id)
+    target.status = 'Scanning... (0%)'
+    target.scan_progress = 0
+    db.session.commit()
+
+    vuln_templates_folder = 'app/vuln_templates'
+    templates = get_all_templates(vuln_templates_folder)
+
     try:
-        logger.debug(f"Received scan request for target {target_id}")
+        total_templates = len(templates)
+        for index, template in enumerate(templates):
+            scan_module = import_module(template)
 
-        if "username" not in session:
-            logger.error("Unauthorized scan attempt: User not logged in")
-            return jsonify({
-                'error': 'Unauthorized',
-                'status': 'Error'
-            }), 401
+            # Perform the scan
+            template_results = perform_scan(target.domain, scan_module)
 
-        target = Target.query.get(target_id)
-        if not target:
-            logger.error(f"Target not found for ID {target_id}")
-            return jsonify({
-                'error': 'Target not found',
-                'status': 'Error'
-            }), 404
+            # Track execution time for each template
+            start_time = datetime.now()
 
-        if target.user_id != session.get("user_id"):
-            logger.error(f"Unauthorized scan attempt for target {target_id}")
-            return jsonify({
-                'error': 'Unauthorized to scan this target',
-                'status': 'Error'
-            }), 403
+            for vuln in template_results:
+                url = vuln['endpoint']
+                try:
+                    response = requests.get(url, allow_redirects=True)
+                    if response.status_code == 200:
+                        vulnerability = Vulnerability(
+                            name=vuln['name'],
+                            details=vuln['details'],
+                            severity=vuln['severity'],
+                            cvss_score=vuln['cvss_score'],
+                            endpoint=url,
+                            scan_name=target.name,
+                            full_description=vuln['full_description'],
+                            remediation=vuln['remediation'],
+                            cwe_code=vuln.get('cwe_code'),
+                            cve_code=vuln.get('cve_code'),
+                            cvss_metrics=vuln.get('cvss_metrics'),
+                        )
+                        db.session.add(vulnerability)
+                        db.session.commit()
+                except requests.RequestException as e:
+                    logger.error(f"Error requesting {url}: {e}")
 
-        target.status = 'Scanning'
+            # Record template execution time
+            end_time = datetime.now()
+            execution_time = (end_time - start_time).total_seconds()
+            logger.info(f"Template {template} completed in {execution_time:.2f} seconds.")
+
+            # Update progress
+            progress = ((index + 1) / total_templates) * 100
+            target.scan_progress = round(progress)
+            target.status = f'Scanning... ({int(progress)}%)'
+            db.session.commit()
+
+            scan_log = scanlog(
+                target_id=target.id,
+                log_content=f"Template {template} completed with progress: {int(progress)}%"
+            )
+            db.session.add(scan_log)
+            db.session.commit()
+
+            # Simulate delay for demonstration purposes (remove in production)
+            sleep(1)
+
+        target.status = 'Completed'
         db.session.commit()
-
-        # Safely get scan types, defaulting to None if not present
-        scan_types = None
-        try:
-            # Check if there's a JSON body
-            if request.is_json:
-                scan_types = request.json.get('scan_types')
-        except Exception as json_error:
-            logger.warning(f"No JSON body or error parsing JSON: {json_error}")
-
-        scan_session_id = scan_session_manager.create_session(target_id)
-        logger.debug(f"Created scan session {scan_session_id} for target {target_id}")
-
-        scanning_thread = threading.Thread(
-            target=perform_scan, 
-            args=(current_app._get_current_object(), scan_session_id, scan_types), 
-            daemon=True
-        )
-        scanning_thread.start()
-
-        return jsonify({
-            'scan_session_id': scan_session_id,
-            'target_domain': target.domain,
-            'scan_types': scan_types or list(SCAN_TEMPLATES.keys())
-        })
+        flash('Scan completed successfully!', 'success')
 
     except Exception as e:
-        logger.error(f"Error initiating scan for target {target_id}: {e}")
-        logger.error(traceback.format_exc())
-        return jsonify({
-            'error': str(e),
-            'status': 'Error'
-        }), 500
+        logger.error(f"Scan failed: {str(e)}")
+        flash(f'Error occurred during scan: {str(e)}', 'error')
+        target.status = 'Scan Error'
+        target.scan_error = str(e)
+        db.session.commit()
+        db.session.rollback()
 
-@scanner_app.route('/scan_status/<scan_session_id>')
-def get_scan_status(scan_session_id):
-    try:
-        scan_session = scan_session_manager.get_session(scan_session_id)
-        
-        return jsonify({
-            'is_complete': scan_session.get('is_complete', False),
-            'status': scan_session.get('status', 'Unknown'),
-            'progress': scan_session.get('progress', 0),
-            'vulnerabilities': scan_session.get('vulnerabilities', [])
-        })
+    return redirect(url_for('targets.target', target_id=target.id))
 
-    except Exception as e:
-        logger.error(f"Error retrieving scan status for {scan_session_id}: {e}")
-        return jsonify({
-            'error': str(e),
-            'status': 'Error'
-        }), 500
+# Scan progress route
+@scanner_app.route('/scanner/scan_progress/<int:target_id>', methods=['GET'])
+def scan_progress(target_id):
+    target = Target.query.get_or_404(target_id)
+    return jsonify({
+        'status': target.status,
+        'progress': target.scan_progress,
+        'scan_error': target.scan_error
+    })
+
+@scanner_app.route('/results/<int:target_id>', methods=['GET'])
+def view_results(target_id):
+    target = Target.query.get_or_404(target_id)
+    vulnerabilities = Vulnerability.query.filter_by(scan_name=target.name).all()
+    return render_template('results.html', target=target, vulnerabilities=vulnerabilities)
+
+# View scan logs
+@scanner_app.route('/view_logs/<int:target_id>', methods=['GET'])
+def view_logs(target_id):
+    target = Target.query.get_or_404(target_id)
+    logs = scanlog.query.filter_by(target_id=target.id).order_by(scanlog.timestamp.desc()).all()
+    return render_template('view_logs.html', target=target, logs=logs)
+
+# Severity Colors
+def severity_color(severity):
+    if severity == 'Critical':
+        return '#ff0000'
+    elif severity == 'High':
+        return '#ff4500'
+    elif severity == 'Medium':
+        return '#ffa500' 
+    elif severity == 'Low':
+        return '#32cd32' 
+    else:
+        return '#1e90ff' 
+
+# View results
+@scanner_app.route('/vulnerability_details/<int:vuln_id>', methods=['GET'])
+def vulnerability_details(vuln_id):
+    vulnerability = Vulnerability.query.get_or_404(vuln_id)
+    return render_template('details.html', 
+                           vulnerability=vulnerability,
+                           severity_color=severity_color)
+
+
