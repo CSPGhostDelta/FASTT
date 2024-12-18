@@ -37,9 +37,12 @@ class Target(db.Model):
     scan_error = db.Column(db.String(255), nullable=True)
 
     user = db.relationship('User', back_populates='targets')
+
 class Vulnerability(db.Model):
+    __tablename__ = 'vulnerabilities'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=False)
+    name = db.Column(db.String(255), nullable=False)    
+    vulnerability_type = db.Column(db.String(50), nullable=True) 
     details = db.Column(db.Text, nullable=False)
     severity = db.Column(db.String(50), nullable=False)
     cvss_score = db.Column(db.String(50), nullable=False)
@@ -50,7 +53,7 @@ class Vulnerability(db.Model):
     cwe_code = db.Column(db.String(50), nullable=True) 
     cve_code = db.Column(db.String(50), nullable=True)
     cvss_metrics = db.Column(db.String(255), nullable=True)
-    
+
     def __repr__(self):
         return f"<Vulnerability {self.name}>"
 

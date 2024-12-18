@@ -93,48 +93,50 @@ function confirmDelete(event, form) {
     });
 }
 
-// Real-time progress update function for scanning
 $(document).ready(function() {
     $(".scan-form").submit(function(event) {
+        event.preventDefault();
+
         var targetId = $(this).data('target-id');
         var form = $(this);
         var targetStatus = $('#status-' + targetId);
         var statusElement = targetStatus.find("span");
-        var progressBar = $('#progress-bar-' + targetId);
 
-        // Set status to scanning immediately after clicking scan button
         statusElement.text("Scanning...").removeClass().addClass("status-scanning");
-        progressBar.css('width', '0%').text('0%');
 
-        // Perform AJAX request to start scan
         $.post(form.attr('action'), function(response) {
-            if (response.status === 'Scanning') {
-                // Poll for progress updates
-                var progressInterval = setInterval(function() {
-                    $.get("/scanner/scan_progress/" + targetId, function(progressResponse) {
-                        var progress = progressResponse.progress;
-                        var statusText = "Scanning... (" + progress + "%)";
-                        
-                        // Update status and progress bar
-                        statusElement.text(statusText);
-                        progressBar.css('width', progress + '%').text(progress + '%');
-                        
-                        if (progress === 100) {
-                            clearInterval(progressInterval);
-                            statusElement.text('Completed').removeClass().addClass("status-completed");
-                            progressBar.css('width', '100%').text('100%');
-
-                            // Optionally, redirect to the results page or show a success message
-                            window.location.href = '/results/' + targetId;
-                        }
-                    });
-                }, 2000); // Update every 2 seconds
-            }
+            checkScanProgress(targetId); // Start checking progress
         }).fail(function() {
+            statusElement.text('Scan Error').removeClass().addClass("status-error");
+        });
+    });
+});
+
+function checkScanProgress(targetId) {
+    const statusElement = $('#status-' + targetId).find("span");
+    const progressBar = $('#progress-bar-' + targetId);
+
+    const progressInterval = setInterval(function() {
+        $.get("/scanner/scan_progress/" + targetId, function(progressResponse) {
+            const progress = progressResponse.progress;
+            const statusText = "Scanning... (" + progress + "%)";
+            
+            // Update status and progress bar
+            statusElement.text(statusText);
+            progressBar.css('width', progress + '%').text(progress + '%');
+            
+            if (progress === 100) {
+                clearInterval(progressInterval);
+                statusElement.text('Completed').removeClass().addClass("status-completed");
+                progressBar.css('width', '100%').text(' 100%');
+
+                window.location.href = '/scanner/view_scan/' + targetId; // Redirect to results page
+            }
+            
+        }).fail(function() {
+            clearInterval(progressInterval);
             statusElement.text('Scan Error').removeClass().addClass("status-error");
             progressBar.css('width', '0%').text('0%');
         });
-
-        event.preventDefault();
-    });
-});
+    }, 2000); // Update every 2 seconds
+}

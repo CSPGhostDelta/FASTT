@@ -1,0 +1,51 @@
+SCAN_TEMPLATE = {
+    'info': {
+        'name': 'Name of the vulnerability',        
+        'type': 'type of the vuln (e.g. injection, broken access control, etc.)',
+        'severity': 'severity of the vuln (e.g. low, medium, high)',
+        'description': 'description of the vuln',
+        'cvss_score': 'cvss score if any',
+        'cvss_metrics': 'cvss metrics if any',        
+        'cwe_code': 'if any',
+        'cve_code': 'if any',
+        'full_description': 'full description if any', 
+        'remediation': 'remediation if any',
+    },
+
+    'entry_point': {
+        'entry_point_method': 'header' or 'parameter' or 'path',  # This defines the type of vulnerability (header, parameter, or path). Choose one of them
+        
+        # If method is header
+        'headers': [ 
+            'X-Forwarded-For',  # example header
+            'User-Agent'        # another example header
+        ],
+
+        # If method is parameter
+        'parameters': [ 
+            '?q=',   # example parameter
+            '?search='  # another example parameter
+        ],
+
+        # If method is path
+        'paths': [ 
+            '{domain}',  # Example path where {domain} will be replaced with the target domain
+        ]
+    },
+
+    'payloads': {
+        'payload_type': 'single',  # or 'wordlist' choose one of them.
+
+        # If type is 'single'
+        'payload': [ 
+            'admin',  # example payload for 'single' type
+        ],
+
+        # If type is 'wordlist'
+        'payload': [ 
+            'wordlist.txt'  # A file containing a list of payloads for wordlist scanning
+        ]
+    },
+
+    'execute': "$entry_point_method, $payload"  # The method of execution based on entry point (header, parameter, path)
+}

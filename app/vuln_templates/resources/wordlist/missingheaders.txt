@@ -1,0 +1,4 @@
+Strict-Transport-Security
+X-Content-Type-Options
+X-Frame-Options
+asdadasd

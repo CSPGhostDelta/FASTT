@@ -1,13 +1,22 @@
-2024-12-12 00:10:00,506 - INFO - Template vuln_templates.A01.activeadmin completed in 0.39 seconds.
-2024-12-12 03:15:26,506 - ERROR - Scan failed: For 'single' payload type, 'payload' should be a single string representing the path.
-2024-12-12 03:16:13,092 - INFO - Template vuln_templates.A01.activeadmin completed in 0.24 seconds.
-2024-12-12 03:18:14,282 - INFO - Template vuln_templates.A01.activeadmin completed in 0.41 seconds.
-2024-12-12 03:18:14,595 - INFO - Template vuln_templates.A01.activeadmin completed in 0.38 seconds.
-2024-12-12 03:19:23,250 - ERROR - Scan failed: For 'single' payload type, 'payload' should be a single string representing the path.
-2024-12-12 03:19:48,916 - INFO - Template vuln_templates.A01.activeadmin completed in 0.22 seconds.
-2024-12-12 03:20:15,666 - INFO - Template vuln_templates.A01.activeadmin completed in 0.39 seconds.
-2024-12-12 03:20:59,483 - ERROR - Scan failed: Wordlist file admin.txt not found.
-2024-12-12 03:23:53,570 - INFO - Template vuln_templates.A01.activeadmin completed in 0.24 seconds.
-2024-12-12 03:33:26,783 - INFO - Template vuln_templates.A01.activeadmin completed in 0.70 seconds.
-2024-12-12 03:33:50,833 - INFO - Template vuln_templates.A01.activeadmin completed in 0.22 seconds.
-2024-12-12 03:36:47,547 - INFO - Template vuln_templates.A01.activeadmin completed in 0.24 seconds.
+2024-12-19 04:23:29,754 - INFO - Templates loaded: 1. Time taken: 0.00 seconds.
+2024-12-19 04:23:29,756 - INFO - Performing scan for Example Vulnerability on domain http://testphp.vulnweb.com/
+2024-12-19 04:23:29,756 - INFO - Payload type: single, Payloads: ['admin ']
+2024-12-19 04:23:29,756 - INFO - Scanning endpoint: http://testphp.vulnweb.com//admin 
+2024-12-19 04:23:29,756 - ERROR - Failed to add vulnerability: 'target_id' is an invalid keyword argument for Vulnerability
+2024-12-19 04:23:29,757 - INFO - Scan completed for Example Vulnerability. Time taken: 0.00 seconds.
+2024-12-19 04:23:30,278 - INFO - Template vuln_templates.A01.test completed in 0.52 seconds.
+2024-12-19 04:27:12,170 - INFO - Templates loaded: 1. Time taken: 0.00 seconds.
+2024-12-19 04:27:12,174 - ERROR - SCAN_TEMPLATE 'execute' section: $entry_point, $payloads
+2024-12-19 04:27:12,174 - ERROR - Template validation failed: The 'execute' section in template <module 'vuln_templates.A01.test' from '/home/csp-ghost-delta-purple/Documents/FASTT/app/vuln_templates/A01/test.py'> is not a valid dictionary.
+2024-12-19 04:27:12,174 - ERROR - Scan failed: The 'execute' section in template <module 'vuln_templates.A01.test' from '/home/csp-ghost-delta-purple/Documents/FASTT/app/vuln_templates/A01/test.py'> is not a valid dictionary.
+2024-12-19 04:27:31,356 - INFO - Templates loaded: 1. Time taken: 0.00 seconds.
+2024-12-19 04:27:31,358 - ERROR - SCAN_TEMPLATE 'execute' section: $entry_point, $payloads
+2024-12-19 04:27:31,358 - ERROR - Template validation failed: The 'execute' section in template <module 'vuln_templates.A01.test' from '/home/csp-ghost-delta-purple/Documents/FASTT/app/vuln_templates/A01/test.py'> is not a valid dictionary.
+2024-12-19 04:27:31,359 - ERROR - Scan failed: The 'execute' section in template <module 'vuln_templates.A01.test' from '/home/csp-ghost-delta-purple/Documents/FASTT/app/vuln_templates/A01/test.py'> is not a valid dictionary.
+2024-12-19 04:28:16,855 - INFO - Templates loaded: 1. Time taken: 0.00 seconds.
+2024-12-19 04:28:16,858 - INFO - Performing scan for Example Vulnerability on domain http://testphp.vulnweb.com/
+2024-12-19 04:28:16,858 - INFO - Payload type: single, Payloads: ['admin ']
+2024-12-19 04:28:16,858 - INFO - Scanning endpoint: http://testphp.vulnweb.com//admin 
+2024-12-19 04:28:16,868 - INFO - Vulnerability saved: Example Vulnerability at http://testphp.vulnweb.com//admin .
+2024-12-19 04:28:16,868 - INFO - Scan completed for Example Vulnerability. Time taken: 0.01 seconds.
+2024-12-19 04:28:17,387 - INFO - Template vuln_templates.A01.test completed in 0.52 seconds.

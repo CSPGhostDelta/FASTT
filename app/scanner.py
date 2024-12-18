@@ -1,14 +1,16 @@
 import os
 import importlib.util
-import requests
 import logging
 from flask import Blueprint, jsonify, flash, render_template, redirect, url_for
 from app.database import db, Target, Vulnerability, scanlog
-from time import sleep
 from datetime import datetime
+import time
+import requests
+from time import sleep
 
 scanner_app = Blueprint('scanner', __name__)
 
+# Set up logger
 logger = logging.getLogger('scanner')
 logger.setLevel(logging.DEBUG)
 file_handler = logging.FileHandler('scanner.log')
@@ -19,11 +21,16 @@ logger.addHandler(file_handler)
 
 def get_all_templates(vuln_templates_folder='app/vuln_templates/'):
     templates = []
+    start_time = time.time()  # Start time for loading templates
+
     for root, dirs, files in os.walk(vuln_templates_folder):
         for file in files:
             if file.endswith('.py') and file != '__init__.py':
                 module_path = os.path.relpath(os.path.join(root, file), start='app').replace(os.sep, '.')
                 templates.append(module_path[:-3])
+
+    end_time = time.time()  # End time for loading templates
+    logger.info(f"Templates loaded: {len(templates)}. Time taken: {end_time - start_time:.2f} seconds.")
     return templates
 
 def import_module(module_name):
@@ -34,17 +41,109 @@ def import_module(module_name):
     return module
 
 def validate_scan_template(template_module):
-    required_keys = {'name', 'type', 'severity', 'description', 'payloads'}
-    if not hasattr(template_module, 'SCAN_TEMPLATE'):
-        raise ValueError(f"The template {template_module} does not have a SCAN_TEMPLATE.")
+    try:
+        required_info_keys = {'name', 'type', 'severity', 'description'}
+        required_entry_point_keys = {'entry_point_method'}
+        required_payloads_keys = {'payload_type', 'payload'}
+        required_execute_keys = {'execute'}
 
-    scan_info = template_module.SCAN_TEMPLATE.get('info', {})
-    if not required_keys.issubset(scan_info.keys()):
-        missing_keys = required_keys - scan_info.keys()
-        raise ValueError(f"The template {template_module} is missing required keys: {missing_keys}")
+        if not hasattr(template_module, 'SCAN_TEMPLATE'):
+            raise ValueError(f"The template {template_module} does not have a SCAN_TEMPLATE.")
 
-def perform_scan(domain, template_module):
-    # Ensure domain ends with a slash
+        scan_info = template_module.SCAN_TEMPLATE.get('info', {})
+        if not isinstance(scan_info, dict):
+            raise ValueError(f"The 'info' section in template {template_module} is not a valid dictionary.")
+        
+        if not required_info_keys.issubset(scan_info.keys()):
+            missing_keys = required_info_keys - scan_info.keys()
+            raise ValueError(f"The template {template_module} is missing required info keys: {missing_keys}")
+
+        entry_point_info = template_module.SCAN_TEMPLATE.get('entry_point', {})
+        if not isinstance(entry_point_info, dict):
+            raise ValueError(f"The 'entry_point' section in template {template_module} is not a valid dictionary.")
+        
+        if not required_entry_point_keys.issubset(entry_point_info.keys()):
+            missing_keys = required_entry_point_keys - entry_point_info.keys()
+            raise ValueError(f"The template {template_module} is missing required entry point keys: {missing_keys}")
+
+        payload_info = template_module.SCAN_TEMPLATE.get('payloads', {})
+        if not isinstance(payload_info, dict):
+            raise ValueError(f"The 'payloads' section in template {template_module} is not a valid dictionary.")
+        
+        if not required_payloads_keys.issubset(payload_info.keys()):
+            missing_keys = required_payloads_keys - payload_info.keys()
+            raise ValueError(f"The template {template_module} is missing required payloads keys: {missing_keys}")
+
+        # Check that entry_point and payloads are not empty
+        if not entry_point_info.get('paths'):
+            raise ValueError(f"The 'entry_point' section in template {template_module} cannot be empty.")
+        
+        if not payload_info.get('payload'):
+            raise ValueError(f"The 'payloads' section in template {template_module} cannot be empty.")
+
+        execute_info = template_module.SCAN_TEMPLATE.get('execute', "")
+        if not isinstance(execute_info, str):
+            logger.error(f"SCAN_TEMPLATE 'execute' section: {execute_info}")
+            raise ValueError(f"The 'execute' section in template {template_module} must be a string.")
+
+    except ValueError as e:
+        logger.error(f"Template validation failed: {e}")
+        raise e
+
+def template_details(scan_info, endpoint):
+    return {
+        'name': scan_info['name'],
+        'details': scan_info['description'], 
+        'severity': scan_info['severity'],
+        'cvss_score': scan_info['cvss_score'],
+        'cvss_metrics': scan_info['cvss_metrics'],
+        'endpoint': endpoint,
+        'full_description ': scan_info.get('full_description', 'N/A'),
+        'remediation': scan_info.get('remediation', 'N/A'),
+        'type': scan_info.get('type', 'N/A'),
+        'cwe_code': scan_info.get('cwe_code', 'N/A'),
+        'cve_code': scan_info.get('cve_code', 'N/A')
+    }
+
+def add_vulnerability(scan_info, endpoint, target):
+    try:
+        if isinstance(target, int):
+            target = Target.query.get(target)
+        if not target:
+            raise ValueError(f"Target with ID {target} not found")
+
+        target_name = target.name
+        target_id = target.id
+
+        vulnerability = Vulnerability(
+            name=scan_info['name'],
+            vulnerability_type=scan_info['type'],
+            details=scan_info['description'],
+            severity=scan_info['severity'],
+            cvss_score=scan_info['cvss_score'],
+            cvss_metrics=scan_info['cvss_metrics'],
+            endpoint=endpoint,
+            scan_name=target_name,
+            full_description=scan_info['full_description'],
+            remediation=scan_info['remediation'],
+            cwe_code=scan_info['cwe_code'],
+            cve_code=scan_info['cve_code'],
+            id=target_id
+        )
+        db.session.add(vulnerability)
+        db.session.commit()
+
+        logger.info(f"Vulnerability saved: {vulnerability.name} at {vulnerability.endpoint}.")
+        return vulnerability
+       
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to add vulnerability: {e}")
+        return None
+
+def perform_scan(domain, template_module, target):
+    start_time = time.time()
+    
     if not domain.endswith('/'):
         domain = f'{domain}/'
 
@@ -52,7 +151,6 @@ def perform_scan(domain, template_module):
     results = []
     scan_info = template_module.SCAN_TEMPLATE.get('info', {})
 
-    # Default values for missing template fields
     default_values = {
         'name': 'N/A',
         'severity': 'N/A',
@@ -67,79 +165,66 @@ def perform_scan(domain, template_module):
         'cvss_metrics': 'N/A',
     }
 
-    # Replace missing or empty values with default "N/A"
+    logger.info(f"Performing scan for {scan_info['name']} on domain {domain}")
+
     for key, default_value in default_values.items():
         if not scan_info.get(key):
             scan_info[key] = default_value
 
-    payload_info = scan_info.get('payloads', {})
+    payload_info = template_module.SCAN_TEMPLATE.get('payloads', {})
     payload_type = payload_info.get('payload_type', None)
-    payload = payload_info.get('payload', [])
+    payloads = payload_info.get('payload', [])
+
+    logger.info(f"Payload type: {payload_type}, Payloads: {payloads}")
 
     if payload_type not in ['single', 'wordlist']:
         raise ValueError("Invalid payload type specified. Choose either 'single' or 'wordlist'.")
 
-    if payload_type == 'single':
-        if isinstance(payload, list):
-            for path in payload:
-                if isinstance(path, str):
-                    # Ensure there is no extra slash before appending the payload
-                    endpoint = f'{domain}{path.lstrip("/")}'
-                    results.append({
-                        'name': scan_info['name'],
-                        'details': scan_info['description'], 
-                        'severity': scan_info['severity'],
-                        'cvss_score': scan_info['cvss_score'],
-                        'cvss_metrics': scan_info['cvss_metrics'],
-                        'endpoint': endpoint,
-                        'full_description': scan_info.get('full_description', 'N/A'),
-                        'remediation': scan_info.get('remediation', 'N/A'),
-                        'type': scan_info.get('type', 'N/A'),
-                        'cwe_code': scan_info.get('cwe_code', 'N/A'),
-                        'cve_code': scan_info.get('cve_code', 'N/A')
-                    })
-                else:
-                    raise ValueError("For 'single' payload type, each 'payload' should be a string representing the path.")
-        else:
-            raise ValueError("For 'single' payload type, 'payload' should be a list of paths.")
+    entry_point = template_module.SCAN_TEMPLATE.get('entry_point', {})
+    entry_point_method = entry_point.get('entry_point_method', None)
+    headers = entry_point.get('headers', [])
+    parameters = entry_point.get('parameters', [])
+    paths = entry_point.get('paths', [])
 
-    elif payload_type == 'wordlist':
-        if isinstance(payload, list):  # Wordlist payload should be a list of filenames
-            for wordlist_file in payload:
-                wordlist_path = os.path.join('app', 'vuln_templates', 'resources', 'wordlist', wordlist_file)
-                if os.path.isfile(wordlist_path):
-                    with open(wordlist_path, 'r') as f:
-                        wordlist = f.readlines()
-                    for word in wordlist:
-                        endpoint = f'{domain}{word.strip().lstrip("/")}'
-                        results.append({
-                            'name': scan_info['name'],
-                            'details': scan_info['description'], 
-                            'severity': scan_info['severity'],
-                            'cvss_score': scan_info['cvss_score'],
-                            'cvss_metrics': scan_info['cvss_metrics'],
-                            'endpoint': endpoint,
-                            'full_description': scan_info.get('full_description', 'N/A'),
-                            'remediation': scan_info.get('remediation', 'N/A'),
-                            'type': scan_info.get('type', 'N/A'),
-                            'cwe_code': scan_info.get('cwe_code', 'N/A'),
-                            'cve_code': scan_info.get('cve_code', 'N/A')
-                        })
-                else:
-                    raise ValueError(f"Wordlist file {wordlist_file} not found.")
-        else:
-            raise ValueError("For 'wordlist' payload type, 'payload' should be a list of wordlist file names.")
+    if entry_point_method == 'header' and headers:
+        for header in headers:
+            for payload in payloads:
+                endpoint = f"{domain} -- Injecting header: {header} with payload: {payload}"
+                logger.info(f"Scanning endpoint: {endpoint}")
+                results.append(template_details(scan_info, endpoint))
+                add_vulnerability(scan_info, endpoint, target)
 
+    elif entry_point_method == 'parameter' and parameters:
+        for param in parameters:
+            for payload in payloads:
+                endpoint = f"{domain}{param}{payload}"
+                if not endpoint.startswith(domain):
+                    endpoint = domain + endpoint
+                logger.info(f"Scanning endpoint: {endpoint}")
+                results.append(template_details(scan_info, endpoint))
+                add_vulnerability(scan_info, endpoint, target)
+
+    elif entry_point_method == 'path' and paths:
+        for path in paths:
+            for payload in payloads:
+                endpoint = path.format(domain=domain)
+                if not endpoint.startswith(domain):
+                    endpoint = domain + endpoint
+                endpoint = f"{endpoint}{payload}"
+                logger.info(f"Scanning endpoint: {endpoint}")
+                results.append(template_details(scan_info, endpoint))
+                add_vulnerability(scan_info, endpoint, target)
+
+    end_time = time.time()
+    logger.info(f"Scan completed for {scan_info['name']}. Time taken: {end_time - start_time:.2f} seconds.")
     return results
 
-# Log vulnerability details
 def log_vulnerability(vuln):
     logger.info(
         f"Vulnerability Found: {vuln['name']} | Type: {vuln['type']} | Severity: {vuln['severity']} | "
         f"Matcher: {vuln['matcher']} | Endpoint: {vuln['endpoint']} | CWE: {vuln['cwe_code']} | CVE: {vuln['cve_code']}"
     )
 
-# Update start_scan to handle new details
 @scanner_app.route('/start_scan/<int:target_id>', methods=['POST'])
 def start_scan(target_id):
     target = Target.query.get_or_404(target_id)
@@ -147,7 +232,7 @@ def start_scan(target_id):
     target.scan_progress = 0
     db.session.commit()
 
-    vuln_templates_folder = 'app/vuln_templates'
+    vuln_templates_folder = 'app/vuln_templates' 
     templates = get_all_templates(vuln_templates_folder)
 
     try:
@@ -156,7 +241,7 @@ def start_scan(target_id):
             scan_module = import_module(template)
 
             # Perform the scan
-            template_results = perform_scan(target.domain, scan_module)
+            template_results = perform_scan(target.domain, scan_module, target)
 
             # Track execution time for each template
             start_time = datetime.now()
@@ -262,5 +347,3 @@ def vulnerability_details(vuln_id):
     return render_template('details.html', 
                            vulnerability=vulnerability,
                            severity_color=severity_color)
-
-
