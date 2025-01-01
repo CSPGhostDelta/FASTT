@@ -11,7 +11,8 @@
     {% include 'header.html' %}
     {% include 'notification.html' %}
     <script src="/static/scripts/alert.js"></script>
-    <script src="/static/scripts/script.js"></script>    
+    <script src="/static/scripts/script.js"></script>
+    <script src="/static/scripts/scan.js"></script> 
 </head>
 <body>
     <div class="container">
@@ -53,21 +54,21 @@
                                     {% endif %}">
                                     {{ target.status }}
                                     </span>
+                                    <span id="progress-{{ target.id }}" class="progress-percentage" style="display: none;">0%</span>
                                     {% if target.status == 'Scan Error' and target.scan_error %}
-                                    <span class="ml-2" data-toggle="tooltip" title="{{ target.scan_error }}">
+                                    <span class="ml-2" data-toggle ="tooltip" title="{{ target.scan_error }}">
                                         <i class="fas fa-exclamation-circle text-danger"></i>
                                     </span>
                                     {% endif %}
                                 </td>
-                                
                                 <td data-label="Added On">{{ target.added_on }}</td>
                                 <td data-label="Actions">
                                     {% if target.status not in ['Scanning', 'Completed', 'Scan Error'] %}
                                     <form action="{{ url_for('scanner.start_scan', target_id=target.id) }}" 
-                                        method="POST" 
-                                        class="scan-form" 
-                                        data-target-id="{{ target.id }}" 
-                                        onsubmit="startScan(event, this)">
+                                          method="POST" 
+                                          class="scan-form" 
+                                          data-target-id="{{ target.id }}" 
+                                          onsubmit="startScan(event, this)">
                                         <button type="submit" class="iconbutton">
                                             <svg class="play-icon" viewBox="-1.5 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -78,7 +79,6 @@
                                             </svg>
                                         </button>
                                     </form>
-                              
                                     {% endif %}
                                     <form action="{{ url_for('targets.delete_target', target_id=target.id) }}" method="post" style="display:inline;" onsubmit="confirmDelete(event, this)">
                                         <button type="submit" class="iconbutton">
@@ -96,12 +96,13 @@
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="7" class="empty-message">There's no target, add targets to scan!</td>
+                            <td colspan="8" class="empty-message">There's no target, add targets to scan!</td>
                         </tr>
                     {% endif %}
                 </tbody>
             </table>
         </div>
+        
         <a href="{{ url_for('targets.addtarget') }}" class="add-target-btn"> 
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000000">
                 <g>

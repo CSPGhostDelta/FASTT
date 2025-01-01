@@ -82,7 +82,15 @@ td {
     border-radius: 5px;
 }
 
-.status-scanning { color: rgb(122, 122, 122); }
+.status-scanning {
+    color: rgb(148, 148, 148);
+    border: 1px solid rgb(68, 68, 68);
+    background-color: rgba(82, 82, 82, 0.329);
+    font-family: "Ubuntu";
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
 .status-completed { 
     color: rgb(32, 192, 0);
     border: 1px solid rgb(39, 187, 2);
@@ -91,18 +99,19 @@ td {
     padding: 5px 10px;
     border-radius: 5px;
 }
-.status-error { color: red; }
 
-.progress-container {
-    width: 100%;
-    background-color: #e9ecef;
-    height: 5px;
-    border-radius: 3px;
+.status-error { 
+    color: rgb(238, 39, 39);
+    border: 1px solid rgb(175, 29, 29);
+    background-color: rgba(124, 1, 1, 0.329);
+    font-family: "Ubuntu";
+    padding: 5px 10px;
+    border-radius: 5px;
 }
-.progress-bar {
-    height: 100%;
-    background-color: #007bff;
-    transition: width 0.5s ease;
+
+.progress-percentage {
+    margin-left: 10px;
+    font-family: "Ubuntu";
 }
 
 .iconbutton {

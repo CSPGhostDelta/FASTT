@@ -222,3 +222,20 @@ a {
 .logotext a {
     color: white;
 }
+
+.severity::before {
+    color: var(--text-color);
+}
+
+.info-box, .details-box {
+    background-color: var(--card-color-2);
+}
+
+.container hr{
+    border-top: 2px solid var(--text-color);
+
+}
+
+.details-box h3 {
+    border-bottom: 2px solid var(--text-color);
+}

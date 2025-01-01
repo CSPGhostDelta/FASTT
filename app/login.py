@@ -66,7 +66,7 @@ def login():
             session["user_id"] = user.id 
             session.permanent = bool(remember)
             flash("Successfully logged in! Welcome to dashboard.", "success") 
-            return redirect(url_for("app.homedashboard"))
+            return redirect(url_for("dashboard.homedashboard"))
         else:
             flash("Invalid username or password", "error")
             return render_template("login.html")
@@ -77,10 +77,4 @@ def logout():
     session.pop("username", None) 
     session.pop("user_id", None) 
     flash("You have been successfully logged out.", "info")
-    return redirect(url_for("app.login"))
-
-@app.route("/homedashboard")
-def homedashboard():
-    if "username" in session:
-        return render_template("homedashboard.html")
     return redirect(url_for("app.login"))

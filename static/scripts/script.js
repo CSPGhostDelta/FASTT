@@ -4,8 +4,7 @@ function enableButton() {
     const loginButton = document.getElementById('loginbtn');
     if (usernameInput.value.trim() && passwordInput.value.trim()) {
         loginButton.disabled = false;
-    } 
-    else {
+    } else {
         loginButton.disabled = true;
     }
 }
@@ -91,52 +90,4 @@ function confirmDelete(event, form) {
             form.submit(); 
         }
     });
-}
-
-$(document).ready(function() {
-    $(".scan-form").submit(function(event) {
-        event.preventDefault();
-
-        var targetId = $(this).data('target-id');
-        var form = $(this);
-        var targetStatus = $('#status-' + targetId);
-        var statusElement = targetStatus.find("span");
-
-        statusElement.text("Scanning...").removeClass().addClass("status-scanning");
-
-        $.post(form.attr('action'), function(response) {
-            checkScanProgress(targetId); // Start checking progress
-        }).fail(function() {
-            statusElement.text('Scan Error').removeClass().addClass("status-error");
-        });
-    });
-});
-
-function checkScanProgress(targetId) {
-    const statusElement = $('#status-' + targetId).find("span");
-    const progressBar = $('#progress-bar-' + targetId);
-
-    const progressInterval = setInterval(function() {
-        $.get("/scanner/scan_progress/" + targetId, function(progressResponse) {
-            const progress = progressResponse.progress;
-            const statusText = "Scanning... (" + progress + "%)";
-            
-            // Update status and progress bar
-            statusElement.text(statusText);
-            progressBar.css('width', progress + '%').text(progress + '%');
-            
-            if (progress === 100) {
-                clearInterval(progressInterval);
-                statusElement.text('Completed').removeClass().addClass("status-completed");
-                progressBar.css('width', '100%').text(' 100%');
-
-                window.location.href = '/scanner/view_scan/' + targetId; // Redirect to results page
-            }
-            
-        }).fail(function() {
-            clearInterval(progressInterval);
-            statusElement.text('Scan Error').removeClass().addClass("status-error");
-            progressBar.css('width', '0%').text('0%');
-        });
-    }, 2000); // Update every 2 seconds
 }

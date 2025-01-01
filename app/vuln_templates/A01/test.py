@@ -1,32 +1,26 @@
-# app/vuln_templates/A01/test.py
-
 SCAN_TEMPLATE = {
     'info': {
-        'name': 'Example Vulnerability',
-        'type': 'Example Type',
-        'severity': 'Medium',
-        'description': 'This is an example vulnerability for testing.',
-        'cvss_score': '5.0',
-        'cvss_metrics': 'AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N',
-        'cwe_code': '123',  # Example CWE code
-        'cve_code': 'CVE-2024-XXXX',  # Example CVE code
-        'full_description': 'Detailed description of the example vulnerability.',
-        'remediation': 'Remediation steps for the example vulnerability.',
+        'name': 'Admin Page Access Control Check',
+        'type': 'Broken Access Control',
+        'severity': 'High',
+        'description': 'Checks for broken access control on the admin page by attempting unauthorized access.',
+        'cvss_score': '7.5',
+        'cvss_metrics': 'AV:N/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:H',
+        'cwe_code': '287',
+        'cve_code': 'CVE-2021-12345',
+        'full_description': 'This vulnerability exists when an attacker can access restricted areas, such as admin pages, without proper authentication or authorization.',
+        'remediation': 'Ensure that proper access controls are implemented on the admin page. Only authorized users should be able to access it.',
     },
-
     'entry_point': {
-        'entry_point_method': 'path',  # This defines the type of vulnerability (header, parameter, or path).
+        'entry_point_method': 'path', 
         'paths': [
-            '{domain}/',  # Example path to check
-        ]
+            '{domain}', 
+        ],
     },
-
     'payloads': {
-        'payload_type': 'single',  # or 'wordlist' choose one of them.
+        'payload_type': 'single',
         'payload': [
-            'admin ',  # Example payload for testing
-        ]
+            'admin'
+        ],
     },
-
-    'execute': "$entry_point, $payloads"  # Keeping execute as a string
 }

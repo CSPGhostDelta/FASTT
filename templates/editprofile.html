@@ -25,7 +25,7 @@
                 <input type="text" id="address" name="address" value="{{ user.address or '' }}">
             
                 <div class="buttons">
-                    <button type="button" class="cancel-btn">Cancel</button>
+                    <a href="{{ url_for('profile.profile') }}" class="cancel-btn">Cancel</a>
                     <button type="submit" class="save-btn">Save Changes</button>
                 </div>
             </form>

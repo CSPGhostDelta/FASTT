@@ -18,22 +18,22 @@
             <div class="summary-item">
                 <span class="icon">🎯</span>
                 <p>Total Targets</p>
-                <h3>3</h3>
+                <h3>{{ total_targets }}</h3>
             </div>
             <div class="summary-item">
                 <span class="icon">🔍</span>
                 <p>Total Scans</p>
-                <h3>3</h3>
+                <h3>{{ total_scans }}</h3>
             </div>
             <div class="summary-item">
                 <span class="icon">🐞</span>
                 <p>Total Vulnerabilities</p>
-                <h3>8</h3>
+                <h3>{{ total_vulnerabilities }}</h3>
             </div>
             <div class="summary-item">
                 <span class="icon">⏲️</span>
                 <p>Total Scan Time Elapsed</p>
-                <h3>64 hours, 30 Minutes</h3>
+                <h3>{{ total_scan_time }}</h3>
             </div>
         </div>
 
@@ -41,11 +41,11 @@
             <div class="vulnerabilities-severity">
                 <h3>Total Vulnerabilities by Severity</h3><hr>
                 <div class="severity">
-                    <div class="severity-item critical">0<br>Critical</div>
-                    <div class="severity-item high">0<br>High</div>
-                    <div class="severity-item medium">0<br>Medium</div>
-                    <div class="severity-item low">0<br>Low</div>
-                    <div class="severity-item informational">0<br>Informational</div>
+                    <div class="severity-item critical">{{ severity_counts.Critical }}<br>Critical</div>
+                    <div class="severity-item high">{{ severity_counts.High }}<br>High</div>
+                    <div class="severity-item medium">{{ severity_counts.Medium }}<br>Medium</div>
+                    <div class="severity-item low">{{ severity_counts.Low }}<br>Low</div>
+                    <div class="severity-item informational">{{ severity_counts.Informational }}<br>Informational</div>
                 </div>
             </div>
 
@@ -58,26 +58,19 @@
                         <th>Name</th>
                         <th>Total</th>
                     </tr>
-                    <tr>
-                        <td>1.</td>
-                        <td>SQL Injection</td>
-                        <td>4</td>
-                    </tr>
-                    <tr>
-                        <td>2.</td>
-                        <td>Cross-Site Scripting (XSS)</td>
-                        <td>2</td>
-                    </tr>
-                    <tr>
-                        <td>3.</td>
-                        <td>Cross-Site Request Forgery</td>
-                        <td>3</td>
-                    </tr>
-                    <tr>
-                        <td>4.</td>
-                        <td>File Upload Vulnerability</td>
-                        <td>2</td>
-                    </tr>
+                    {% if most_vulnerabilities %}
+                        {% for vuln_type, count in most_vulnerabilities %}
+                        <tr>
+                            <td>{{ loop.index }}.</td>
+                            <td>{{ vuln_type }}</td>
+                            <td>{{ count }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="empty-message">No vulnerabilities found</td>
+                        </tr>
+                    {% endif %}
                 </table>
             </div>
         </div>

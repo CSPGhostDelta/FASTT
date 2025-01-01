@@ -22,8 +22,9 @@
                         <th>No.</th>
                         <th>Name</th>
                         <th>Target Domain</th>
-                        <th>Last Scan</th>
-                        <th>Start</th>
+                        <th>Target Added</th>
+                        <th>Scan Start</th>
+                        <th>Scan End</th>
                         <th>Scan Time Elapsed</th>
                     </tr>
                 </thead>
@@ -34,18 +35,18 @@
                                 <td data-label="No.">{{ loop.index }}</td>
                                 <td data-label="Name">{{ target.name }}</td>
                                 <td data-label="Target Domain">{{ target.domain }}</td>
-                                <td data-label="Last Scan">{{ target.note }}</td>
-                                <td data-label="Start">{{ target.added_on.strftime("%B %d, %Y, %I:%M %p") }}</td>
-                                <td data-label="Scan Time Elapsed">N/A</td>
+                                <td data-label="Target Date">{{ target.target_date }}</td>
+                                <td data-label="Scan Start">{{ target.scan_start }}</td>
+                                <td data-label="Scan End">{{ target.scan_end }}</td>
+                                <td data-label="Scan Time Elapsed">{{ target.scan_time_elapsed }}</td>
                             </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="6" class="empty-message">No scan history available.</td>
+                            <td colspan="7" class="empty-message">No scan history available.</td>
                         </tr>
                     {% endif %}
                 </tbody>
-                
             </table>
         </div>
     </div>

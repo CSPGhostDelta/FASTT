@@ -13,7 +13,7 @@ SCAN_TEMPLATE = {
     },
 
     'entry_point': {
-        'entry_point_method': 'header' or 'parameter' or 'path',  # This defines the type of vulnerability (header, parameter, or path). Choose one of them
+        'entry_point_method': ,  # 'header' or 'parameter' or 'path'. This defines the type of vulnerability (header, parameter, or path). Choose one of them
         
         # If method is header
         'headers': [ 
@@ -29,7 +29,8 @@ SCAN_TEMPLATE = {
 
         # If method is path
         'paths': [ 
-            '{domain}',  # Example path where {domain} will be replaced with the target domain
+            '{domain}',
+            '{domain}/admin'  # Example path where {domain} will be replaced with the target domain
         ]
     },
 

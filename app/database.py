@@ -15,7 +15,7 @@ engine = create_engine(dockerdb())
 
 class User(db.Model):
     __tablename__ = "users"
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # Ensure auto-increment
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(100))
@@ -26,7 +26,7 @@ class User(db.Model):
 
 class Target(db.Model):
     __tablename__ = 'targets'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # Ensure auto-increment
     name = db.Column(db.String(255))
     domain = db.Column(db.String(255))
     status = db.Column(db.String(50))
@@ -40,7 +40,7 @@ class Target(db.Model):
 
 class Vulnerability(db.Model):
     __tablename__ = 'vulnerabilities'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # Ensure auto-increment
     name = db.Column(db.String(255), nullable=False)    
     vulnerability_type = db.Column(db.String(50), nullable=True) 
     details = db.Column(db.Text, nullable=False)
@@ -56,19 +56,7 @@ class Vulnerability(db.Model):
 
     def __repr__(self):
         return f"<Vulnerability {self.name}>"
-
-class scanlog(db.Model):
-    __tablename__ = 'scan_logs'
-    id = db.Column(db.Integer, primary_key=True)
-    target_id = db.Column(db.Integer, db.ForeignKey('targets.id'), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    log_content = db.Column(db.Text, nullable=False)
-
-    target = db.relationship('Target', backref=db.backref('scan_logs', lazy=True))
-
-    def __repr__(self):
-        return f'<ScanLog Target: {self.target_id}, Timestamp: {self.timestamp}>'
-
+    
 def get_vulnerabilities(scan_name):
     vulnerabilities = Vulnerability.query.filter_by(scan_name=scan_name).all()
     return [

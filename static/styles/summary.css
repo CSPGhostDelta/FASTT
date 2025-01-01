@@ -98,10 +98,16 @@ hr {
     flex-shrink: 0; 
 }
 
+.empty-message {
+    text-align: left;
+    color: #888;
+    padding: 20px;
+    font-style: italic;
+}
 
-.critical { color: rgb(255, 33, 33); }
-.high { color: rgb(216, 166, 0); }
-.medium { color: rgb(226, 226, 0); }
+.critical { color: rgb(255, 0, 0); }
+.high { color: rgb(216, 67, 67); }
+.medium { color: rgb(204, 173, 0); }
 .low { color: rgb(21, 221, 21); }
 .informational { color: rgb(15, 179, 179);}
 

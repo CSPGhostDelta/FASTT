@@ -15,7 +15,7 @@
     <div class="container">
         <h2 class="header">Scan Results for {{ target.name }}</h2>
         <div class="download-report">
-            <a href="{{ url_for('results.download_html', target_id=target.id) }}" class="download-btn">
+            <a href="{{ url_for('results.download', target_id=target.id) }}" class="download-btn">
                 <i class="fas fa-download"></i> Download Report
             </a>
         </div>

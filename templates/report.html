@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Results - {{ target.name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; text-align: left; border: 1px solid #ddd; }
+        th { background-color: #f4f4f4; }
+        .vuln-severity-critical { color: red; }
+        .vuln-severity-high { color: orange; }
+        .vuln-severity-medium { color: yellow; }
+        .vuln-severity-low { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Scan Results for Target: {{ target.name }}</h1>
+    <p><strong>Domain:</strong> {{ target.domain }}</p>
+    <p><strong>Scan Status:</strong> {{ target.status }}</p>
+    <p><strong>Scanned On:</strong> {{ target.added_on.strftime('%B %d, %Y, %I:%M %p') }}</p>
+    <p><strong>Total Vulnerabilities:</strong> {{ vulnerabilities|length }}</p>
+
+    <h2>Vulnerabilities Detected</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Vulnerability Name</th>
+                <th>Severity</th>
+                <th>CVSS Score</th>
+                <th>Details</th>
+                <th>Affected Endpoint</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, vuln in enumerate(vulnerabilities) %}
+                <tr class="vuln-severity-{{ vuln.severity.lower() }}">
+                    <td>{{ index + 1 }}</td>
+                    <td>{{ vuln.name }}</td>
+                    <td>{{ vuln.severity }}</td>
+                    <td>{{ vuln.cvss_score }}</td>
+                    <td>{{ vuln.details }}</td>
+                    <td>{{ vuln.endpoint }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
